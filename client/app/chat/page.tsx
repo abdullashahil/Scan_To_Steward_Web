@@ -25,7 +25,7 @@ export default function Chat() {
   async function sendMessage() {
     if (!input.trim()) return;
 
-    const newMessages = [
+    const newMessages: Message[] = [
       ...messages,
       { role: "user", content: input },
     ];
