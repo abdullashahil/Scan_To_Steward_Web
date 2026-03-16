@@ -1,0 +1,2 @@
+# Scan To Steward
+Scan to Steward is an AI-powered web portal designed to improve rational antibiotic use through OCR-based prescription analysis, patient education modules, adherence reminders, and AI chatbot assistance.
