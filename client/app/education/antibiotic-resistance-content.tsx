@@ -8,7 +8,7 @@ const slides = [
     image: "/bug1.svg",
     caption: (
       <>
-        Taking antibiotics when they are not needed.
+        Using antibiotics without a proper indication
         <br />
         <span className="font-medium text-foreground">Overuse of antibiotics</span>
       </>
@@ -18,9 +18,9 @@ const slides = [
     image: "/bug2.svg",
     caption: (
       <>
-        Antibiotics kill bacteria causing the illness.
+        Antibiotics eliminate the bacteria responsible for the infection.
         <br />
-        <span className="font-medium text-foreground">Ooh! A few of them are resistant!</span>
+        <span className="font-medium text-foreground">Oh no! Some of them are resistant!</span>
       </>
     ),
   },
@@ -28,9 +28,9 @@ const slides = [
     image: "/bug3.svg",
     caption: (
       <>
-        The resistant bacteria multiply and spread.
+        The resistant bacteria multiplied and spread
         <br />
-        <span className="font-medium text-foreground">Current treatments will no longer work!</span>
+        <span className="font-medium text-foreground">Existing treatments become ineffective!</span>
       </>
     ),
   },
