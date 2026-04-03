@@ -6,9 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bell, Check, Clock, Pill, Trash2, Repeat } from "lucide-react"
-import { getMessagingInstance } from "@/lib/firebase"
-import { getToken, onMessage } from "firebase/messaging"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Bell, Clock, Pill, Trash2, Repeat, User, Mail, Edit2 } from "lucide-react"
 
 type RepeatOption = "once" | "daily" | "3times"
 
@@ -17,8 +16,13 @@ interface Reminder {
   medicine: string
   time: string
   repeat: RepeatOption
-  completed: boolean
   createdAt: number
+  backendId?: string
+}
+
+interface UserInfo {
+  firstName: string
+  email: string
 }
 
 const REPEAT_LABELS: Record<RepeatOption, string> = {
@@ -27,19 +31,28 @@ const REPEAT_LABELS: Record<RepeatOption, string> = {
   "3times": "3 times/day",
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+
 export default function RemindersPage() {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [medicine, setMedicine] = useState("")
   const [time, setTime] = useState("")
   const [repeat, setRepeat] = useState<RepeatOption>("once")
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "default">("default")
-  const [fcmToken, setFcmToken] = useState<string | null>(null)
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
+  const [showUserModal, setShowUserModal] = useState(false)
+  const [tempFirstName, setTempFirstName] = useState("")
+  const [tempEmail, setTempEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Hardcode VAPID key for testing (from .env.local)
-  const VAPID_KEY = "BHWGm2K3_pulEPuV9Xcp0QT5jp-FnO6VHXizVN_V4ixpa8Vkbb4GzxZFUtcTCYUC8YINIaIsZyUs1rL1pepaTno"
-
-  // Load reminders from localStorage
+  // Load user info and reminders from localStorage
   useEffect(() => {
+    const savedUser = localStorage.getItem("reminderUserInfo")
+    if (savedUser) {
+      setUserInfo(JSON.parse(savedUser))
+    } else {
+      setShowUserModal(true)
+    }
+
     const saved = localStorage.getItem("medicineReminders")
     if (saved) {
       setReminders(JSON.parse(saved))
@@ -51,146 +64,247 @@ export default function RemindersPage() {
     localStorage.setItem("medicineReminders", JSON.stringify(reminders))
   }, [reminders])
 
-  // Get FCM Token for push notifications
+  const handleSaveUserInfo = () => {
+    if (!tempFirstName.trim() || !tempEmail.trim()) return
+    
+    const newUserInfo = { firstName: tempFirstName.trim(), email: tempEmail.trim() }
+    setUserInfo(newUserInfo)
+    localStorage.setItem("reminderUserInfo", JSON.stringify(newUserInfo))
+    setShowUserModal(false)
+  }
+
+  const handleEditUserInfo = () => {
+    if (userInfo) {
+      setTempFirstName(userInfo.firstName)
+      setTempEmail(userInfo.email)
+    }
+    setShowUserModal(true)
+  }
+
+  const addReminder = async () => {
+    if (!medicine || !time || !userInfo) return
+
+    setIsLoading(true)
+    
+    try {
+      // Call backend API
+      const reminderDate = new Date()
+      const [hours, minutes] = time.split(":")
+      reminderDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+
+      const response = await fetch(`${API_BASE_URL}/reminders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_name: userInfo.firstName,
+          user_email: userInfo.email,
+          medicine: medicine,
+          reminder_time: reminderDate.toISOString(),
+          repeat_type: repeat,
+        }),
+      })
+
+      let backendId = undefined
+      if (response.ok) {
+        const data = await response.json()
+        backendId = data.id
+      } else {
+        console.error("Failed to create reminder on backend")
+      }
+
+      // Add to localStorage for display
+      const newReminder: Reminder = {
+        id: crypto.randomUUID(),
+        medicine,
+        time,
+        repeat,
+        createdAt: Date.now(),
+        backendId,
+      }
+
+      setReminders((prev) => [...prev, newReminder])
+      setMedicine("")
+      setTime("")
+      setRepeat("once")
+    } catch (error) {
+      console.error("Error adding reminder:", error)
+      // Still add to localStorage even if backend fails
+      const newReminder: Reminder = {
+        id: crypto.randomUUID(),
+        medicine,
+        time,
+        repeat,
+        createdAt: Date.now(),
+      }
+      setReminders((prev) => [...prev, newReminder])
+      setMedicine("")
+      setTime("")
+      setRepeat("once")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Remove expired reminders (one-time reminders whose time has passed)
   useEffect(() => {
-    const setupNotifications = async () => {
-      const permission = await Notification.requestPermission()
-      setNotificationPermission(permission)
+    const checkExpiredReminders = () => {
+      const now = new Date()
+      const currentHours = now.getHours()
+      const currentMinutes = now.getMinutes()
+      const currentTime = currentHours * 60 + currentMinutes
 
-      if (permission === "granted") {
-        const messaging = await getMessagingInstance()
-        if (!messaging) {
-          console.log("[FCM] Messaging not supported on this environment")
-          return
-        }
+      setReminders((prev) => {
+        const filtered = prev.filter((reminder) => {
+          // Daily and 3times reminders never expire
+          if (reminder.repeat !== "once") return true
 
-        console.log("[FCM] Permission granted, registering service worker...", messaging)
-        try {
-          // Register the Firebase messaging service worker
-          const registration = await navigator.serviceWorker.register(
-            "/firebase-messaging-sw.js"
-          )
-          console.log("[FCM] SW registered:", registration)
+          // For one-time reminders, check if time has passed
+          const [hours, minutes] = reminder.time.split(":").map(Number)
+          const reminderTime = hours * 60 + minutes
 
-          // IMPORTANT: wait until it's ACTIVE before calling getToken
-          await new Promise((resolve) => {
-            if (registration.active) return resolve(true)
-
-            registration.addEventListener("updatefound", () => {
-              const newWorker = registration.installing
-              newWorker?.addEventListener("statechange", () => {
-                if (newWorker.state === "activated") {
-                  resolve(true)
-                }
+          // Remove if reminder time has passed today
+          if (reminderTime < currentTime) {
+            // Also delete from backend if we have backendId
+            if (reminder.backendId) {
+              fetch(`${API_BASE_URL}/reminders/${reminder.backendId}`, {
+                method: "DELETE",
+              }).catch((error) => {
+                console.error("Error deleting expired reminder from backend:", error)
               })
-            })
-          })
-          console.log("[FCM] SW is ACTIVE now")
-
-          const token = await getToken(messaging, {
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: registration,
-          })
-          console.log("token", token)
-          if (token) {
-            console.log("FCM Token:", token)
-            setFcmToken(token)
-          } else {
-            console.log("No FCM token available")
+            }
+            return false
           }
+          return true
+        })
+        return filtered
+      })
+    }
 
-          // Handle foreground FCM messages
-          onMessage(messaging, (payload) => {
-            console.log("[FCM] Foreground message received:", payload)
-            new Notification(payload.notification?.title || "Medicine Reminder", {
-              body: payload.notification?.body || "Time to take your medicine",
-              icon: "/favicon.ico",
-            })
-          })
-        } catch (err) {
-          console.error("Error getting FCM token:", err)
-        }
+    // Check immediately on mount
+    checkExpiredReminders()
+
+    // Check every minute
+    const interval = setInterval(checkExpiredReminders, 60000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const deleteReminder = async (id: string, backendId?: string) => {
+    // Delete from backend if we have a backendId
+    if (backendId) {
+      try {
+        await fetch(`${API_BASE_URL}/reminders/${backendId}`, {
+          method: "DELETE",
+        })
+      } catch (error) {
+        console.error("Error deleting reminder from backend:", error)
       }
     }
 
-    setupNotifications()
-  }, [])
-
-  const requestNotificationPermission = useCallback(async () => {
-    if ("Notification" in window) {
-      const permission = await Notification.requestPermission()
-      setNotificationPermission(permission)
-    }
-  }, [])
-
-  const addReminder = () => {
-    if (!medicine || !time) return
-
-    const newReminder: Reminder = {
-      id: crypto.randomUUID(),
-      medicine,
-      time,
-      repeat,
-      completed: false,
-      createdAt: Date.now(),
-    }
-
-    setReminders((prev) => [...prev, newReminder])
-    setMedicine("")
-    setTime("")
-    setRepeat("once")
-  }
-
-  const completeReminder = (id: string) => {
-    setReminders((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, completed: true } : r))
-    )
-  }
-
-  const deleteReminder = (id: string) => {
+    // Delete from localStorage
     setReminders((prev) => prev.filter((r) => r.id !== id))
   }
 
-  const upcomingReminders = reminders.filter((r) => !r.completed)
-  const completedReminders = reminders.filter((r) => r.completed)
-
   return (
-    <div className="min-h-screen bg-background pt-24 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-foreground mb-8 text-center flex items-center justify-center gap-3">
-          <Bell className="w-8 h-8" />
-          Medicine Reminders
-        </h1>
+    <div className="min-h-screen bg-background pt-20 sm:pt-24 p-4 sm:p-8">
+      {/* User Info Modal - Non-closable until user info is provided */}
+      <Dialog 
+        open={showUserModal} 
+        onOpenChange={(open) => {
+          // Only allow closing if userInfo exists (editing mode)
+          if (userInfo) {
+            setShowUserModal(open)
+          }
+        }}
+      >
+        <DialogContent 
+          className="sm:max-w-md"
+          onPointerDownOutside={(e) => {
+            // Prevent closing when clicking outside if no user info
+            if (!userInfo) {
+              e.preventDefault()
+            }
+          }}
+          onEscapeKeyDown={(e) => {
+            // Prevent closing with Escape key if no user info
+            if (!userInfo) {
+              e.preventDefault()
+            }
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Your Information
+            </DialogTitle>
+            <DialogDescription>
+              Please enter your details to set up medicine reminders. You can edit this later.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                First Name
+              </Label>
+              <Input
+                id="firstName"
+                placeholder="e.g., John"
+                value={tempFirstName}
+                onChange={(e) => setTempFirstName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="e.g., john@example.com"
+                value={tempEmail}
+                onChange={(e) => setTempEmail(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleSaveUserInfo}
+              disabled={!tempFirstName.trim() || !tempEmail.trim()}
+              className="w-full"
+            >
+              Save & Continue
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Notification Permission Banner */}
-        {notificationPermission !== "granted" ? (
-          <Card className="mb-6 bg-blue-50 border-blue-200">
-            <CardContent className="p-4 flex items-center justify-between">
-              <p className="text-sm text-blue-800">
-                Enable browser notifications to get alerts when it&apos;s time to take your medicine.
-              </p>
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+            <Bell className="w-6 h-6 sm:w-8 sm:h-8" />
+            Medicine Reminders
+          </h1>
+          {userInfo && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+              <span className="truncate max-w-[150px] sm:max-w-[200px]" title={`${userInfo.firstName} (${userInfo.email})`}>
+                {userInfo.firstName}
+              </span>
+              <span className=" sm:inline text-muted-foreground/60">
+                ({userInfo.email})
+              </span>
               <Button
-                onClick={requestNotificationPermission}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                onClick={handleEditUserInfo}
+                className="h-8 px-2 flex-shrink-0"
               >
-                Enable
+                <Edit2 className="w-4 h-4" />
               </Button>
-            </CardContent>
-          </Card>
-        ) : fcmToken ? (
-          <Card className="mb-6 bg-green-50 border-green-200">
-            <CardContent className="p-4">
-              <p className="text-sm text-green-800 font-medium">
-                ✅ Push notifications enabled! FCM token acquired.
-              </p>
-              <p className="text-xs text-green-600 mt-1 truncate" title={fcmToken}>
-                Token: {fcmToken.substring(0, 30)}...
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
+            </div>
+          )}
+        </div>
 
         {/* Add Reminder Form */}
         <Card className="mb-8">
@@ -213,6 +327,7 @@ export default function RemindersPage() {
                   placeholder="e.g., Amoxicillin"
                   value={medicine}
                   onChange={(e) => setMedicine(e.target.value)}
+                  disabled={!userInfo}
                 />
               </div>
 
@@ -227,6 +342,7 @@ export default function RemindersPage() {
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
+                  disabled={!userInfo}
                 />
               </div>
 
@@ -236,7 +352,11 @@ export default function RemindersPage() {
                   <Repeat className="w-4 h-4" />
                   Repeat
                 </Label>
-                <Select value={repeat} onValueChange={(v) => setRepeat(v as RepeatOption)}>
+                <Select 
+                  value={repeat} 
+                  onValueChange={(v) => setRepeat(v as RepeatOption)}
+                  disabled={!userInfo}
+                >
                   <SelectTrigger id="repeat">
                     <SelectValue />
                   </SelectTrigger>
@@ -249,111 +369,81 @@ export default function RemindersPage() {
               </div>
             </div>
 
+            {!userInfo && (
+              <p className="text-sm text-muted-foreground text-center">
+                Please set up your information above to add reminders.
+              </p>
+            )}
+
             <Button
               onClick={addReminder}
-              disabled={!medicine || !time}
+              disabled={!medicine || !time || !userInfo || isLoading}
               className="w-full"
             >
-              Add Reminder
+              {isLoading ? "Adding..." : "Add Reminder"}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Upcoming Reminders */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-xl text-blue-600">
-              ⏰ Upcoming Reminders ({upcomingReminders.length})
+        {/* Reminders List */}
+        <Card className="border-0 shadow-none p-0 bg-transparent">
+          <CardHeader className="px-0 sm:px-0 pb-4">
+            <CardTitle className="text-lg sm:text-xl text-blue-600">
+              ⏰ Your Reminders ({reminders.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            {upcomingReminders.length === 0 ? (
+          <CardContent className="px-0 sm:px-0">
+            {reminders.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                No upcoming reminders. Add one above!
+                No reminders yet. Add one above!
               </p>
             ) : (
               <div className="space-y-3">
-                {upcomingReminders.map((reminder) => (
-                  <div
-                    key={reminder.id}
-                    className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {reminder.time}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-lg">{reminder.medicine}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {REPEAT_LABELS[reminder.repeat]}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => completeReminder(reminder.id)}
-                        className="text-green-600 hover:bg-green-50"
-                      >
-                        <Check className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => deleteReminder(reminder.id)}
-                        className="text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Completed Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl text-green-600">
-              ✅ Completed ({completedReminders.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {completedReminders.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                No completed reminders yet.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {completedReminders.map((reminder) => (
-                  <div
-                    key={reminder.id}
-                    className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200 opacity-75"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {reminder.time}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-lg line-through">{reminder.medicine}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {REPEAT_LABELS[reminder.repeat]}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={() => deleteReminder(reminder.id)}
-                      className="text-red-600 hover:bg-red-50"
+                {reminders.map((reminder) => {
+                  // Convert 24h time to 12h format with AM/PM
+                  const [hours, minutes] = reminder.time.split(':').map(Number)
+                  const period = hours >= 12 ? 'pm' : 'am'
+                  const displayHours = hours % 12 || 12
+                  const displayTime = `${displayHours}:${minutes.toString().padStart(2, '0')}${period}`
+                  
+                  return (
+                    <div
+                      key={reminder.id}
+                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-white rounded-xl border-0 sm:border sm:border-blue-100 shadow-sm hover:shadow-md transition-shadow"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
+                      {/* Time Badge - Large and Prominent */}
+                      <div className="flex-shrink-0 bg-blue-500 text-white rounded-xl px-3 py-2 sm:px-4 sm:py-3 flex flex-col items-center justify-center min-w-[70px] sm:min-w-[85px]">
+                        <span className="text-lg sm:text-2xl font-bold leading-none">
+                          {displayHours}:{minutes.toString().padStart(2, '0')}
+                        </span>
+                        <span className="text-xs sm:text-sm font-medium uppercase tracking-wider mt-0.5">
+                          {period}
+                        </span>
+                      </div>
+                      
+                      {/* Medicine Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-base sm:text-lg text-foreground truncate">
+                          {reminder.medicine}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-0.5">
+                          <Repeat className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span>{REPEAT_LABELS[reminder.repeat]}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Delete Button */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => deleteReminder(reminder.id, reminder.backendId)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full"
+                      >
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </Button>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </CardContent>

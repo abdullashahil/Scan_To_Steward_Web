@@ -9,7 +9,6 @@ import {
   X,
   User,
   ShieldCheck,
-  ArrowUp,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -37,17 +36,15 @@ export default function Prescription() {
   const [thinking, setThinking] = useState(false);
   const [error, setError] = useState("");
   
-  // Chat mode states
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState("");
-  const [showChat, setShowChat] = useState(false);
+  // Display states
+  const [showResult, setShowResult] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   const handleRemoveFile = () => {
     setFile(null);
-    setShowChat(false);
-    setMessages([]);
+    setShowResult(false);
+    setAnalysis("");
     setShowRemoveModal(false);
   };
   
@@ -62,15 +59,14 @@ export default function Prescription() {
     } else {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, streamingContent, thinking]);
+  }, [streamingContent, thinking]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
     if (!selected) return;
     setFile(selected);
     setAnalysis("");
-    setMessages([]);
-    setShowChat(false);
+    setShowResult(false);
     setError("");
   }
 
@@ -83,8 +79,8 @@ export default function Prescription() {
     }
   }
 
-  // Typewriter effect
-  const streamResponse = useCallback((fullText: string, messageIndex: number) => {
+  // Typewriter effect for displaying summary
+  const streamResponse = useCallback((fullText: string) => {
     let currentIndex = 0;
     setStreamingContent("");
     
@@ -96,11 +92,7 @@ export default function Prescription() {
       if (currentIndex >= fullText.length) {
         clearInterval(interval);
         setStreamingContent("");
-        setMessages(prev => 
-          prev.map((msg, idx) => 
-            idx === messageIndex ? { ...msg, content: fullText, isStreaming: false } : msg
-          )
-        );
+        setAnalysis(fullText);
       }
     }, 30);
 
@@ -128,63 +120,15 @@ export default function Prescription() {
       }
 
       const data = await response.json();
-      setAnalysis(data.response);
-      setShowChat(true);
-      
-      // Add empty assistant message for streaming
-      const assistantMessage: Message = { role: "assistant", content: "", isStreaming: true };
-      setMessages([assistantMessage]);
+      setShowResult(true);
       setThinking(false);
       
       // Start streaming animation
-      streamResponse(data.response, 0);
+      streamResponse(data.response);
     } catch (err) {
       console.error("Analysis failed:", err);
       setError("Failed to analyze prescription. Please try again.");
       setThinking(false);
-    }
-  }
-
-  async function handleSendMessage() {
-    if (!inputMessage.trim() || !file || !role) return;
-
-    const userMessage: Message = { role: "user", content: inputMessage.trim(), isStreaming: false };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage("");
-    setThinking(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("role", role);
-      formData.append("message", userMessage.content);
-
-      const response = await fetch(`${API_BASE_URL}/analyze-prescription`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setThinking(false);
-      
-      // Add assistant message and start streaming
-      const assistantMessage: Message = { role: "assistant", content: "", isStreaming: true };
-      setMessages(prev => {
-        const newMessages = [...prev, assistantMessage];
-        const assistantIndex = newMessages.length - 1;
-        // Start streaming after state update
-        setTimeout(() => streamResponse(data.response, assistantIndex), 0);
-        return newMessages;
-      });
-    } catch (err) {
-      console.error("Failed to send message:", err);
-      setThinking(false);
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I couldn't process your question. Please try again.", isStreaming: false }]);
     }
   }
 
@@ -300,7 +244,7 @@ export default function Prescription() {
           </span>
         </div>
         <button 
-          onClick={() => { setFile(null); setShowChat(false); setMessages([]); }}
+          onClick={() => { setFile(null); setShowResult(false); setAnalysis(""); }}
           className="text-sm text-muted-foreground hover:text-foreground transition"
         >
           Reset
@@ -308,8 +252,8 @@ export default function Prescription() {
       </header>
 
       <div className="flex-1 overflow-y-auto scroll-smooth">
-        {/* Upload Section - Show when no analysis yet */}
-        {!showChat && (
+        {/* Upload Section - Show when no result yet */}
+        {!showResult && (
           <div className="max-w-2xl mx-auto px-4 py-8">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -396,74 +340,45 @@ export default function Prescription() {
           </div>
         )}
 
-        {/* Messages - Full width like ChatGPT */}
-        {showChat && messages.map((msg, idx) => (
+        {/* Analysis Result Display */}
+        {showResult && (
           <motion.div
-            key={idx}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className={`w-full py-6 ${
-              msg.role === "user"
-                ? "bg-background"
-                : "bg-muted/50 border-y border-border/50"
-            }`}
-            ref={msg.isStreaming ? streamingRef : null}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full py-6 bg-muted/50 border-y border-border/50"
           >
-            <div className={`max-w-4xl mx-auto px-4 md:px-8 flex gap-4 md:gap-6 ${
-              msg.role === "user" ? "flex-row-reverse" : ""
-            }`}>
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
-                {msg.role === "assistant" ? (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    role === "pharmacist" ? "bg-slate-700" : "bg-secondary"
-                  }`}>
-                    <Bot className="h-5 w-5 text-white" />
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-muted-foreground/20 flex items-center justify-center">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-
-              {/* Content - Full width, no bubble */}
-              <div className={`flex-1 min-w-0 text-foreground ${
-                msg.role === "user" ? "text-right" : ""
-              }`}>
-                <div className={`text-sm font-medium mb-1 text-muted-foreground ${
-                  msg.role === "user" ? "text-right" : ""
+            <div className="max-w-4xl mx-auto px-4 md:px-8">
+              <div className="flex items-start gap-4 md:gap-6">
+                {/* AI Avatar */}
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                  role === "pharmacist" ? "bg-slate-700" : "bg-secondary"
                 }`}>
-                  {msg.role === "assistant" 
-                    ? (role === "pharmacist" ? "ScanToSteward Clinical AI" : "ScanToSteward AI")
-                    : "You"}
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
-                <div className={`prose prose-sm max-w-none text-left ${
-                  role === "pharmacist" 
-                    ? "text-foreground"
-                    : "text-foreground"
-                }`}>
-                  {msg.isStreaming && !streamingContent ? (
-                    <span className="inline-block w-2 h-4 bg-secondary animate-pulse" />
-                  ) : (
-                    <div>
-                      <ReactMarkdown>
-                        {msg.isStreaming && streamingContent ? streamingContent : msg.content}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                  {msg.isStreaming && streamingContent && (
-                    <span className="inline-block w-2 h-4 bg-secondary ml-1 animate-pulse" />
-                  )}
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium mb-1 text-muted-foreground">
+                    {role === "pharmacist" ? "ScanToSteward Clinical AI" : "ScanToSteward AI"}
+                  </div>
+                  <div className="prose prose-sm max-w-none text-foreground">
+                    {streamingContent ? (
+                      <div>
+                        <ReactMarkdown>{streamingContent}</ReactMarkdown>
+                        <span className="inline-block w-2 h-4 bg-secondary ml-1 animate-pulse" />
+                      </div>
+                    ) : (
+                      <ReactMarkdown>{analysis}</ReactMarkdown>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </motion.div>
-        ))}
+        )}
 
-        {/* Thinking animation */}
-        {showChat && thinking && (
+        {/* Thinking animation - only during initial analysis */}
+        {showResult && thinking && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -485,40 +400,6 @@ export default function Prescription() {
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Input - Fixed at bottom like ChatGPT */}
-      {showChat && (
-        <div className="border-t border-border bg-background p-4 flex-shrink-0">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative flex items-end gap-2 bg-muted/80 rounded-3xl border border-border/50 shadow-lg shadow-black/5 p-4 focus-within:border-secondary/50 focus-within:shadow-secondary/10 focus-within:shadow-lg transition-all duration-200">
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={role === "patient" ? "Ask me..." : "Ask a clinical question..."}
-                rows={1}
-                className="flex-1 bg-transparent resize-none outline-none text-lg text-foreground placeholder:text-muted-foreground/60 max-h-40 py-1 px-2"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                style={{ minHeight: "24px" }}
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || thinking}
-                className="flex-shrink-0 w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center disabled:opacity-30 disabled:bg-muted-foreground/20 disabled:text-muted-foreground hover:opacity-90 transition-all duration-200 shadow-sm"
-              >
-                <ArrowUp className="h-5 w-5" />
-              </button>
-            </div>
-            <p className="text-xs text-center text-muted-foreground/60 mt-2">
-              AI can make mistakes. Verify critical information.
-            </p>
-          </div>
-        </div>
-      )}
       {/* Remove Confirmation Modal */}
       {showRemoveModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">

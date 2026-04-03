@@ -585,84 +585,77 @@ Prescription:
         {"role": "user", "content": user_prompt}
     ]
 
-def build_qa_prompt(extracted_text: str, message: str, role: str, policy_context: str) -> List[dict]:
-    role_instructions = {
-        "patient": "You are a helpful medical assistant. Use simple, clear language. Be friendly and practical.",
-        "pharmacist": "You are a clinical pharmacy assistant. Provide accurate and structured medical explanations."
-    }
+# def build_qa_prompt(extracted_text: str, message: str, role: str, policy_context: str) -> List[dict]:
+#     role_instructions = {
+#         "patient": "You are a helpful medical assistant. Use simple, clear language. Be friendly and practical.",
+#         "pharmacist": "You are a clinical pharmacy assistant. Provide accurate and structured medical explanations."
+#     }
 
-    system_prompt = f"""
-You are a helpful medical assistant answering questions about a prescription.
+#     system_prompt = f"""
+# You are a helpful medical assistant answering questions about a prescription.
 
-ROLE:
-{role_instructions.get(role, role_instructions["patient"])}
+# ROLE:
+# {role_instructions.get(role, role_instructions["patient"])}
 
-IMPORTANT:
+# IMPORTANT:
 
-✅ ALWAYS answer if question is related to prescription, medical, health, or pharmaceutical topics
-✅ You ARE allowed to explain:
-- What medicine is used for
-- Why it is prescribed
+# ✅ ALWAYS answer if question is related to prescription, medical, health, or pharmaceutical topics
+# ✅ You ARE allowed to explain:
+# - What medicine is used for
+# - Why it is prescribed
 
-❌ NEVER say:
-"I cannot provide medical advice"
+# ❌ NEVER say:
+# "I cannot provide medical advice"
 
-❌ NEVER refuse unless completely unrelated
+# ❌ NEVER refuse unless completely unrelated
 
-✅ If unsure:
-Say:
-"Based on this medicine, it is commonly used for..."
+# ✅ If unsure:
+# Say:
+# "Based on this medicine, it is commonly used for..."
 
----
+# ---
 
-Keep answers:
-- Simple (for patient)
-- Clear
-- Direct
+# Keep answers:
+# - Simple (for patient)
+# - Clear
+# - Direct
 
----
+# ---
 
-Prescription:
-{extracted_text}
+# Prescription:
+# {extracted_text}
 
-Policy:
-{policy_context}
-"""
+# Policy:
+# {policy_context}
+# """
 
-    user_prompt = f"""
-    Prescription text:
-    {extracted_text}
+#     user_prompt = f"""
+#     Prescription text:
+#     {extracted_text}
 
-    User question:
-    {message}
+#     User question:
+#     {message}
 
-    Answer clearly and directly.
-    """
+#     Answer clearly and directly.
+#     """
 
-    return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
-    ]
+#     return [
+#         {"role": "system", "content": system_prompt},
+#         {"role": "user", "content": user_prompt}
+#     ]
 
-def generate_fallback_response(extracted_text: str, role: str, message: Optional[str]) -> str:
+def generate_fallback_response(extracted_text: str, role: str) -> str:
     """
     Generate a basic response when LLM is unavailable.
     
     Args:
         extracted_text: OCR-extracted prescription text
         role: 'patient' or 'pharmacist'
-        message: Optional user question
         
     Returns:
         Fallback response string
     """
     if role == "patient":
-        if message:
-            return f"I've analyzed your prescription. It contains: {extracted_text[:200]}...\n\nRegarding your question: I'll need to check the hospital policy for specific guidance on this."
-        else:
-            return f"## Prescription Summary\n\nBased on what I can see, your prescription contains:\n\n{extracted_text[:200]}...\n\nPlease consult with your pharmacist for detailed information about how to take these medications safely."
+        return f"## Prescription Summary\n\nBased on what I can see, your prescription contains:\n\n{extracted_text[:200]}...\n\nPlease consult with your pharmacist for detailed information about how to take these medications safely."
     else:
-        if message:
-            return f"**Extracted Text:** {extracted_text[:200]}...\n\nRegarding your clinical query: Please refer to the hospital antibiotic policy documents retrieved above for guidance."
-        else:
-            return f"## Clinical Prescription Analysis\n\n**Extracted Content:**\n{extracted_text[:200]}...\n\nPlease review against hospital antibiotic policy guidelines."
+        return f"## Clinical Prescription Analysis\n\n**Extracted Content:**\n{extracted_text[:200]}...\n\nPlease review against hospital antibiotic policy guidelines."

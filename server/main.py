@@ -1,3 +1,5 @@
+import asyncio
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -18,32 +20,60 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from vector_store import load_vector_store, get_vector_store
+from db import init_db, close_db, health_check as db_health_check
 
-# OCR service
-# from services.ocr_service import perform_ocr  # Replaced with vision model
+
 
 # LLM service
 from services.llm_service import (
     call_openrouter,
     call_openrouter_vision,
     build_summary_prompt,
-    build_qa_prompt,
     generate_fallback_response,
 )
+from services.reminder_service import (
+    create_reminder,
+    delete_reminder,
+)
+from workers.reminder_worker import reminder_worker, stop_worker
 
 
 # lifespan context manager for startup/shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Load FAISS index
+    # Startup: Load FAISS index and DB
     try:
         load_vector_store("faiss_index")
         logger.info("Vector store loaded successfully")
     except Exception as e:
         logger.warning(f"Could not load vector store: {e}")
         logger.info("Run: python ingest.py to create the FAISS index")
+    
+    # Initialize database connection
+    db_initialized = init_db()
+    if db_initialized:
+        logger.info("Database connected successfully")
+    else:
+        logger.warning("Database connection failed - continuing without DB")
+    
+    # Start reminder worker as background task
+    worker_task = None
+    if db_initialized and os.getenv("RESEND_API_KEY"):
+        worker_task = asyncio.create_task(reminder_worker())
+        logger.info("Reminder worker started")
+    else:
+        logger.warning("Reminder worker not started - missing DB or RESEND_API_KEY")
+    
     yield
-    # Shutdown: cleanup if needed
+    # Shutdown: cleanup
+    if worker_task:
+        stop_worker()
+        worker_task.cancel()
+        try:
+            await worker_task
+        except asyncio.CancelledError:
+            pass
+    close_db()
     logger.info("Shutting down...")
 
 
@@ -97,9 +127,11 @@ async def root():
 @app.get("/health")
 async def health_check():
     store = get_vector_store()
+    db_status = db_health_check()
     return {
         "status": "healthy",
         "vector_store_loaded": store.is_initialized(),
+        "database_connected": db_status["connected"],
     }
 
 
@@ -167,15 +199,12 @@ Hospital Policy Context:
 @app.post("/analyze-prescription", response_model=AnalyzePrescriptionResponse)
 async def analyze_prescription(
     file: UploadFile = File(...),
-    role: str = Form(...),
-    message: Optional[str] = Form(None)
+    role: str = Form(...)
 ):
     """
     Enhanced prescription analyzer with Vision AI + RAG + LLM.
-    Uses Gemini 2.5 Flash-Lite for image extraction instead of OCR.
-    
-    - If only file + role: generates a prescription summary/report
-    - If message also provided: answers the follow-up question
+    Uses Gemini 2.5 Flash-Lite for image extraction.
+    Generates a prescription summary/report only.
     """
     # Validate role
     if role not in ["patient", "pharmacist"]:
@@ -215,14 +244,9 @@ async def analyze_prescription(
     policy_context = "\n\n".join([doc.page_content for doc in docs])
     logger.debug(f"Policy context: {policy_context}")
     
-    # Step 3: LLM - Generate response
+    # Step 3: LLM - Generate summary response
     try:
-        if message and message.strip():
-            # Q&A mode - answer the user's question
-            messages = build_qa_prompt(extracted_text, message, role, policy_context)
-        else:
-            # Summary mode - generate prescription summary
-            messages = build_summary_prompt(extracted_text, role, policy_context)
+        messages = build_summary_prompt(extracted_text, role, policy_context)
         
         llm_response = await call_openrouter(messages)
         
@@ -234,13 +258,71 @@ async def analyze_prescription(
     except Exception as e:
         logger.error(f"LLM Error: {e}")
         # Fallback response if LLM fails
-        fallback_response = generate_fallback_response(extracted_text, role, message)
+        fallback_response = generate_fallback_response(extracted_text, role)
         
         return AnalyzePrescriptionResponse(
             extracted_text=extracted_text,
             response=fallback_response,
             sources=sources,
         )
+
+
+# ================== REMINDER API ENDPOINTS ==================
+
+class CreateReminderRequest(BaseModel):
+    user_name: str
+    user_email: str
+    medicine: str
+    reminder_time: datetime
+    repeat_type: Optional[str] = "once"
+
+
+class ReminderResponse(BaseModel):
+    id: str
+    user_name: str
+    user_email: str
+    medicine: str
+    reminder_time: datetime
+    repeat_type: str
+    is_sent: bool
+    created_at: datetime
+
+
+@app.post("/reminders", response_model=ReminderResponse)
+async def create_new_reminder(request: CreateReminderRequest):
+    """
+    Create a new medicine reminder.
+    The reminder worker will automatically send emails when the time comes.
+    """
+    try:
+        reminder = create_reminder(
+            user_name=request.user_name,
+            user_email=request.user_email,
+            medicine=request.medicine,
+            reminder_time=request.reminder_time,
+            repeat_type=request.repeat_type or "once"
+        )
+        return ReminderResponse(**reminder)
+    except Exception as e:
+        logger.error(f"Error creating reminder: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/reminders/{reminder_id}")
+async def delete_existing_reminder(reminder_id: str):
+    """
+    Delete a reminder by ID.
+    """
+    try:
+        deleted = delete_reminder(reminder_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Reminder not found")
+        return {"message": "Reminder deleted successfully", "id": reminder_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting reminder: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
