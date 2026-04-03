@@ -40,9 +40,9 @@ ENV/
 .env.*.local
 
 # FAISS index (large binary files)
-faiss_index/
-*.faiss
-*.pkl
+# faiss_index/
+# *.faiss
+# *.pkl
 
 # Model cache (downloaded embeddings)
 models/
