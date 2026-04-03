@@ -12,6 +12,7 @@ langchain-huggingface>=0.0.3
 langchain-text-splitters>=0.2.0
 faiss-cpu>=1.8.0
 pypdf>=4.2.0
+sentence-transformers>=3.0.0
 
 # OCR and LLM dependencies
 pytesseract>=0.3.10
