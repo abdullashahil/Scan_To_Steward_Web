@@ -51,14 +51,19 @@ export default function ListOfAntibioticsContent() {
 
                   <div>
                     <h4 className="font-semibold text-foreground text-sm mb-2">Examples</h4>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2">
                       {group.examples.map((example) => (
-                        <span
-                          key={example}
-                          className="px-3 py-1.5 bg-primary/10 text-primary text-sm rounded-full font-medium"
+                        <div
+                          key={example.name}
+                          className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 px-3 py-2 bg-primary/10 text-primary text-sm rounded-lg"
                         >
-                          {example}
-                        </span>
+                          <span className="font-semibold">{example.name}</span>
+                          {example.dose && (
+                            <span className="text-xs text-muted-foreground sm:border-l sm:pl-3 sm:border-primary/30">
+                              {example.dose}
+                            </span>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>

@@ -2,66 +2,154 @@ export const antibiotics = [
 
   {
     category: "Penicillins & Beta-lactam combinations",
-    description: "Common first-line antibiotics used for mild to moderate bacterial infections.",
-    typicalDosage: "Usually taken 2–3 times a day (oral tablets) or given through injection in hospitals.",
-    use: "Respiratory infections, urinary infections, soft tissue infections",
-    examples: ["Amoxicillin", "Amoxicillin-Clavulanate", "Piperacillin-Tazobactam"]
+    description: "Common first-choice antibiotics for mild to moderate infections.",
+    typicalDosage: "Usually taken 2–3 times a day or given as an injection.",
+    use: "Respiratory, urinary, and skin infections",
+    examples: [
+      {
+        name: "Amoxicillin",
+        dose: "500 mg, 2–3 times daily",
+        usedFor: "Throat, sinus, and lung infections"
+      },
+      {
+        name: "Amoxicillin-Clavulanate",
+        dose: "625 mg or 1 g, 2–3 times daily",
+        usedFor: "Respiratory and abdominal infections"
+      },
+      {
+        name: "Piperacillin-Tazobactam",
+        dose: "4.5 g IV every 6–8 hours",
+        usedFor: "Severe infections like sepsis"
+      }
+    ]
   },
 
   {
     category: "Cephalosporins",
-    description: "Broad-spectrum antibiotics widely used in hospitals.",
-    typicalDosage: "Often given as an injection once or twice a day depending on the infection.",
-    use: "Sepsis, pneumonia, surgical infections, urinary infections",
-    examples: ["Ceftriaxone", "Cefotaxime", "Cefuroxime", "Cefazolin"]
+    description: "Widely used antibiotics in hospitals for serious infections.",
+    typicalDosage: "Usually given once or twice daily as an injection.",
+    use: "Pneumonia, sepsis, urinary infections",
+    examples: [
+      {
+        name: "Ceftriaxone",
+        dose: "1–2 g once daily (IV)",
+        usedFor: "Severe infections and typhoid"
+      },
+      {
+        name: "Cefotaxime",
+        dose: "1–2 g every 6–8 hours (IV)",
+        usedFor: "Serious infections like meningitis"
+      },
+      {
+        name: "Cefuroxime",
+        usedFor: "Respiratory and urinary infections"
+      },
+      {
+        name: "Cefazolin",
+        usedFor: "Preventing surgical infections"
+      }
+    ]
   },
 
   {
     category: "Carbapenems",
-    description: "Powerful antibiotics reserved for severe or resistant infections.",
-    typicalDosage: "Given through IV injection every 6–8 hours in hospitals.",
-    use: "Severe infections, ICU infections, drug-resistant infections",
-    examples: ["Meropenem", "Imipenem", "Doripenem"]
+    description: "Strong antibiotics used for severe or resistant infections.",
+    typicalDosage: "Given through IV in hospitals.",
+    use: "Critical and drug-resistant infections",
+    examples: [
+      {
+        name: "Meropenem",
+        dose: "1 g every 8 hours (IV)",
+        usedFor: "Severe and ICU infections"
+      },
+      {
+        name: "Imipenem",
+        dose: "500 mg every 6 hours (IV)",
+        usedFor: "Serious infections"
+      },
+      {
+        name: "Doripenem",
+        usedFor: "Severe hospital infections"
+      }
+    ]
   },
 
   {
     category: "Aminoglycosides",
-    description: "Used mainly in combination therapy for serious infections.",
-    typicalDosage: "Usually given once daily as an injection based on body weight.",
-    use: "Severe infections, hospital-acquired infections",
-    examples: ["Gentamicin", "Amikacin"]
+    description: "Used for serious infections, often along with other antibiotics.",
+    typicalDosage: "Given as injection based on body weight.",
+    use: "Severe infections",
+    examples: [
+      {
+        name: "Gentamicin",
+        usedFor: "Serious bacterial infections"
+      },
+      {
+        name: "Amikacin",
+        dose: "5–7 mg/kg per day",
+        usedFor: "Severe infections"
+      }
+    ]
   },
 
   {
     category: "Glycopeptides",
-    description: "Used for resistant bacterial infections.",
-    typicalDosage: "Given through IV injection 1–2 times a day based on body weight.",
-    use: "Serious infections like MRSA and bloodstream infections",
-    examples: ["Vancomycin", "Teicoplanin"]
+    description: "Used for resistant infections like MRSA.",
+    typicalDosage: "Given via IV with monitoring.",
+    use: "Bloodstream and resistant infections",
+    examples: [
+      {
+        name: "Vancomycin",
+        usedFor: "MRSA and severe infections"
+      },
+      {
+        name: "Teicoplanin",
+        usedFor: "Resistant infections"
+      }
+    ]
   },
 
   {
     category: "Oxazolidinones",
-    description: "Reserved antibiotics for difficult-to-treat infections.",
-    typicalDosage: "Usually taken or given twice daily.",
-    use: "Resistant infections like MRSA and VRE",
-    examples: ["Linezolid"]
+    description: "Reserved for difficult-to-treat infections.",
+    typicalDosage: "Usually taken twice daily.",
+    use: "Resistant infections",
+    examples: [
+      {
+        name: "Linezolid",
+        usedFor: "MRSA and VRE infections"
+      }
+    ]
   },
 
   {
     category: "Lipopeptides",
     description: "Used for severe resistant infections.",
-    typicalDosage: "Given once daily as an injection in hospitals.",
-    use: "Severe resistant infections",
-    examples: ["Daptomycin"]
+    typicalDosage: "Given once daily as injection.",
+    use: "Serious infections",
+    examples: [
+      {
+        name: "Daptomycin",
+        usedFor: "Severe resistant infections"
+      }
+    ]
   },
 
   {
     category: "Polymyxins",
-    description: "Last-resort antibiotics for highly resistant infections.",
-    typicalDosage: "Given through IV in hospitals with a starting higher dose, then regular doses twice daily.",
+    description: "Last-resort antibiotics for highly resistant bacteria.",
+    typicalDosage: "Given in hospitals under strict monitoring.",
     use: "Multi-drug resistant infections",
-    examples: ["Colistin", "Polymyxin B"]
+    examples: [
+      {
+        name: "Colistin",
+        usedFor: "Highly resistant infections"
+      },
+      {
+        name: "Polymyxin B",
+        usedFor: "Severe resistant infections"
+      }
+    ]
   },
 
   {
@@ -69,42 +157,104 @@ export const antibiotics = [
     description: "Broad-spectrum antibiotics available as tablets or injections.",
     typicalDosage: "Usually taken once or twice daily.",
     use: "Urinary, stomach, and respiratory infections",
-    examples: ["Ciprofloxacin", "Levofloxacin", "Ofloxacin"]
+    examples: [
+      {
+        name: "Ciprofloxacin",
+        dose: "500 mg twice daily",
+        usedFor: "UTI and gut infections"
+      },
+      {
+        name: "Levofloxacin",
+        dose: "500 mg once daily",
+        usedFor: "Respiratory infections"
+      },
+      {
+        name: "Ofloxacin",
+        usedFor: "Urinary and stomach infections"
+      }
+    ]
   },
 
   {
     category: "Macrolides",
-    description: "Commonly used for respiratory infections.",
-    typicalDosage: "Usually taken once daily for a short course.",
-    use: "Respiratory infections and atypical pneumonia",
-    examples: ["Azithromycin", "Roxithromycin"]
+    description: "Common antibiotics for respiratory infections.",
+    typicalDosage: "Usually taken once daily.",
+    use: "Respiratory infections",
+    examples: [
+      {
+        name: "Azithromycin",
+        dose: "500 mg once daily",
+        usedFor: "Respiratory infections and typhoid"
+      },
+      {
+        name: "Roxithromycin",
+        usedFor: "Respiratory infections"
+      }
+    ]
   },
 
   {
     category: "Tetracyclines",
-    description: "Broad-spectrum antibiotics used for various infections.",
+    description: "Used for a wide range of infections.",
     typicalDosage: "Usually taken once or twice daily.",
-    use: "Skin infections, respiratory infections",
-    examples: ["Doxycycline", "Tetracycline"]
+    use: "Skin and respiratory infections",
+    examples: [
+      {
+        name: "Doxycycline",
+        dose: "100 mg twice daily",
+        usedFor: "Respiratory and skin infections"
+      },
+      {
+        name: "Tetracycline",
+        usedFor: "Skin infections"
+      }
+    ]
   },
 
   {
     category: "Nitroimidazoles",
-    description: "Effective against anaerobic infections and parasites.",
-    typicalDosage: "Usually taken or given 2–3 times daily.",
-    use: "Abdominal infections, gut infections",
-    examples: ["Metronidazole", "Ornidazole", "Tinidazole"]
+    description: "Effective for gut and anaerobic infections.",
+    typicalDosage: "Usually taken 2–3 times daily.",
+    use: "Abdominal and parasitic infections",
+    examples: [
+      {
+        name: "Metronidazole",
+        dose: "400–500 mg 2–3 times daily",
+        usedFor: "Gut infections and amoebiasis"
+      },
+      {
+        name: "Ornidazole",
+        usedFor: "Parasitic infections"
+      },
+      {
+        name: "Tinidazole",
+        dose: "2 g once daily (short course)",
+        usedFor: "Parasitic infections"
+      }
+    ]
   },
 
   {
     category: "Antifungals",
     description: "Used to treat fungal infections.",
-    typicalDosage: "Usually given once daily or as prescribed.",
-    use: "Fungal infections in blood or organs",
-    examples: ["Fluconazole", "Caspofungin"]
+    typicalDosage: "Usually taken once daily or as prescribed.",
+    use: "Fungal infections",
+    examples: [
+      {
+        name: "Fluconazole",
+        dose: "100–200 mg once daily",
+        usedFor: "Fungal infections"
+      },
+      {
+        name: "Caspofungin",
+        dose: "70 mg first dose, then 50 mg daily",
+        usedFor: "Severe fungal infections"
+      }
+    ]
   }
 
 ];
+
 
 export const restrictedAntibiotics = [
 
