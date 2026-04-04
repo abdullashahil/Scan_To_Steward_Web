@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 # Worker control flag
 _worker_running = False
 
-
 async def reminder_worker():
     """
     Background worker that checks for due reminders every minute
