@@ -2,46 +2,48 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { t } from "@/lib/translations"
 
-const slides = [
-  {
-    image: "/bug1.svg",
-    caption: (
-      <>
-        Using antibiotics without a proper indication
-        <br />
-        <span className="font-medium text-foreground">Overuse of antibiotics</span>
-      </>
-    ),
-  },
-  {
-    image: "/bug2.svg",
-    caption: (
-      <>
-        Antibiotics eliminate the bacteria responsible for the infection.
-        <br />
-        <span className="font-medium text-foreground">Oh no! Some of them are resistant!</span>
-      </>
-    ),
-  },
-  {
-    image: "/bug3.svg",
-    caption: (
-      <>
-        The resistant bacteria multiplied and spread
-        <br />
-        <span className="font-medium text-foreground">Existing treatments become ineffective!</span>
-      </>
-    ),
-  },
-]
-
-function ImageCarousel() {
+function ImageCarousel({ lang }: { lang: "en" | "hi" | "ml" }) {
   const [current, setCurrent] = useState(0)
+
+  const slides = [
+    {
+      image: "/bug1.svg",
+      caption: (
+        <>
+          {t("slide1Line1", lang)}
+          <br />
+          <span className="font-medium text-foreground">{t("slide1Line2", lang)}</span>
+        </>
+      ),
+    },
+    {
+      image: "/bug2.svg",
+      caption: (
+        <>
+          {t("slide2Line1", lang)}
+          <br />
+          <span className="font-medium text-foreground">{t("slide2Line2", lang)}</span>
+        </>
+      ),
+    },
+    {
+      image: "/bug3.svg",
+      caption: (
+        <>
+          {t("slide3Line1", lang)}
+          <br />
+          <span className="font-medium text-foreground">{t("slide3Line2", lang)}</span>
+        </>
+      ),
+    },
+  ]
 
   const next = useCallback(() => {
     setCurrent((prev) => (prev + 1) % slides.length)
-  }, [])
+  }, [slides.length])
 
   const prev = useCallback(() => {
     setCurrent((prev) => (prev - 1 + slides.length) % slides.length)
@@ -106,27 +108,24 @@ function ImageCarousel() {
 }
 
 export default function AntibioticResistanceContent() {
+  const { lang } = useLanguage()
   return (
     <div className="space-y-8 text-lg text-muted-foreground leading-relaxed">
       {/* TITLE */}
       <h3 className="text-xl font-semibold text-foreground text-center">
-        How does antibiotic resistance occur?
+        {t("howResistanceOccurs", lang)}
       </h3>
 
       {/* IMAGE CAROUSEL */}
-      <ImageCarousel />
+      <ImageCarousel lang={lang} />
 
       {/* DESCRIPTION */}
       <p>
-        Antibiotic resistance is occurring everywhere in the world, making infections harder to treat 
-        and weakening modern medicine. While resistance happens naturally, misuse of antibiotics in 
-        humans and animals is speeding up the process.
+        {t("resistanceDesc1", lang)}
       </p>
 
       <p>
-        To address this, global initiatives like the <span className="font-medium text-foreground">
-          "Handle with care"
-        </span> campaign aim to raise awareness and promote responsible antibiotic use.
+        {t("resistanceDesc2", lang)}
       </p>
 
       {/* CAMPAIGN BADGE */}
@@ -135,7 +134,7 @@ export default function AntibioticResistanceContent() {
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <span className="text-white font-bold tracking-wide uppercase text-sm">Handle with Care</span>
+          <span className="text-white font-bold tracking-wide uppercase text-sm">{t("handleWithCare", lang)}</span>
         </div>
       </div>
 
@@ -147,12 +146,12 @@ export default function AntibioticResistanceContent() {
             <iframe
               className="w-full h-full rounded-lg"
               src="https://www.youtube.com/embed/paiIiSzppHY"
-              title="Learn antibiotics video"
+              title={t("videoCaption1", lang)}
               allowFullScreen
             ></iframe>
           </div>
           <p className="text-xs">
-            Learn how to handle antibiotics with care and help stop the spread of antibiotic resistance.
+            {t("videoCaption1", lang)}
           </p>
         </div>
 
@@ -162,13 +161,12 @@ export default function AntibioticResistanceContent() {
             <iframe
               className="w-full h-full rounded-lg"
               src="https://www.youtube.com/embed/-ZX97bIbZBQ"
-              title="WHO Antibiotics - Handle with care"
+              title={t("videoCaption2", lang)}
               allowFullScreen
             ></iframe>
           </div>
           <p className="text-xs">
-            Antibiotics are often used to treat infections, but they aren't always the answer. 
-            Everyone has a role in reducing antibiotic resistance.
+            {t("videoCaption2", lang)}
           </p>
         </div>
       </div>

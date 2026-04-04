@@ -1,254 +1,272 @@
-export const antibiotics = [
+import type { TranslationsKey } from "@/lib/translations"
+
+export const antibiotics: {
+  category: TranslationsKey;
+  description: TranslationsKey;
+  typicalDosage: TranslationsKey;
+  use: TranslationsKey;
+  examples: {
+    name: string;
+    dose?: string;
+    usedFor?: TranslationsKey;
+  }[];
+}[] = [
 
   {
-    category: "Penicillins & Beta-lactam combinations",
-    description: "Common first-choice antibiotics for mild to moderate infections.",
-    typicalDosage: "Usually taken 2–3 times a day or given as an injection.",
-    use: "Respiratory, urinary, and skin infections",
+    category: "abxCat1",
+    description: "abxDesc1",
+    typicalDosage: "abxDosePattern1",
+    use: "abxUse1",
     examples: [
       {
         name: "Amoxicillin",
         dose: "500 mg, 2–3 times daily",
-        usedFor: "Throat, sinus, and lung infections"
+        usedFor: "abxExUsed1"
       },
       {
         name: "Amoxicillin-Clavulanate",
         dose: "625 mg or 1 g, 2–3 times daily",
-        usedFor: "Respiratory and abdominal infections"
+        usedFor: "abxExUsed2"
       },
       {
         name: "Piperacillin-Tazobactam",
         dose: "4.5 g IV every 6–8 hours",
-        usedFor: "Severe infections like sepsis"
+        usedFor: "abxExUsed3"
       }
     ]
   },
 
   {
-    category: "Cephalosporins",
-    description: "Widely used antibiotics in hospitals for serious infections.",
-    typicalDosage: "Usually given once or twice daily as an injection.",
-    use: "Pneumonia, sepsis, urinary infections",
+    category: "abxCat2",
+    description: "abxDesc2",
+    typicalDosage: "abxDosePattern2",
+    use: "abxUse2",
     examples: [
       {
         name: "Ceftriaxone",
         dose: "1–2 g once daily (IV)",
-        usedFor: "Severe infections and typhoid"
+        usedFor: "abxExUsed4"
       },
       {
         name: "Cefotaxime",
         dose: "1–2 g every 6–8 hours (IV)",
-        usedFor: "Serious infections like meningitis"
+        usedFor: "abxExUsed5"
       },
       {
         name: "Cefuroxime",
-        usedFor: "Respiratory and urinary infections"
+        usedFor: "abxExUsed6"
       },
       {
         name: "Cefazolin",
-        usedFor: "Preventing surgical infections"
+        usedFor: "abxExUsed7"
       }
     ]
   },
 
   {
-    category: "Carbapenems",
-    description: "Strong antibiotics used for severe or resistant infections.",
-    typicalDosage: "Given through IV in hospitals.",
-    use: "Critical and drug-resistant infections",
+    category: "abxCat3",
+    description: "abxDesc3",
+    typicalDosage: "abxDosePattern3",
+    use: "abxUse3",
     examples: [
       {
         name: "Meropenem",
         dose: "1 g every 8 hours (IV)",
-        usedFor: "Severe and ICU infections"
+        usedFor: "abxExUsed8"
       },
       {
         name: "Imipenem",
         dose: "500 mg every 6 hours (IV)",
-        usedFor: "Serious infections"
+        usedFor: "abxExUsed9"
       },
       {
         name: "Doripenem",
-        usedFor: "Severe hospital infections"
+        usedFor: "abxExUsed10"
       }
     ]
   },
 
   {
-    category: "Aminoglycosides",
-    description: "Used for serious infections, often along with other antibiotics.",
-    typicalDosage: "Given as injection based on body weight.",
-    use: "Severe infections",
-    examples: [
-      {
-        name: "Gentamicin",
-        usedFor: "Serious bacterial infections"
-      },
-      {
-        name: "Amikacin",
-        dose: "5–7 mg/kg per day",
-        usedFor: "Severe infections"
-      }
-    ]
-  },
-
-  {
-    category: "Glycopeptides",
-    description: "Used for resistant infections like MRSA.",
-    typicalDosage: "Given via IV with monitoring.",
-    use: "Bloodstream and resistant infections",
-    examples: [
-      {
-        name: "Vancomycin",
-        usedFor: "MRSA and severe infections"
-      },
-      {
-        name: "Teicoplanin",
-        usedFor: "Resistant infections"
-      }
-    ]
-  },
-
-  {
-    category: "Oxazolidinones",
-    description: "Reserved for difficult-to-treat infections.",
-    typicalDosage: "Usually taken twice daily.",
-    use: "Resistant infections",
-    examples: [
-      {
-        name: "Linezolid",
-        usedFor: "MRSA and VRE infections"
-      }
-    ]
-  },
-
-  {
-    category: "Lipopeptides",
-    description: "Used for severe resistant infections.",
-    typicalDosage: "Given once daily as injection.",
-    use: "Serious infections",
-    examples: [
-      {
-        name: "Daptomycin",
-        usedFor: "Severe resistant infections"
-      }
-    ]
-  },
-
-  {
-    category: "Polymyxins",
-    description: "Last-resort antibiotics for highly resistant bacteria.",
-    typicalDosage: "Given in hospitals under strict monitoring.",
-    use: "Multi-drug resistant infections",
-    examples: [
-      {
-        name: "Colistin",
-        usedFor: "Highly resistant infections"
-      },
-      {
-        name: "Polymyxin B",
-        usedFor: "Severe resistant infections"
-      }
-    ]
-  },
-
-  {
-    category: "Fluoroquinolones",
-    description: "Broad-spectrum antibiotics available as tablets or injections.",
-    typicalDosage: "Usually taken once or twice daily.",
-    use: "Urinary, stomach, and respiratory infections",
-    examples: [
-      {
-        name: "Ciprofloxacin",
-        dose: "500 mg twice daily",
-        usedFor: "UTI and gut infections"
-      },
-      {
-        name: "Levofloxacin",
-        dose: "500 mg once daily",
-        usedFor: "Respiratory infections"
-      },
-      {
-        name: "Ofloxacin",
-        usedFor: "Urinary and stomach infections"
-      }
-    ]
-  },
-
-  {
-    category: "Macrolides",
-    description: "Common antibiotics for respiratory infections.",
-    typicalDosage: "Usually taken once daily.",
-    use: "Respiratory infections",
+    category: "abxCat4",
+    description: "abxDesc4",
+    typicalDosage: "abxDosePattern4",
+    use: "abxUse4",
     examples: [
       {
         name: "Azithromycin",
         dose: "500 mg once daily",
-        usedFor: "Respiratory infections and typhoid"
+        usedFor: "abxExUsed11"
       },
       {
         name: "Roxithromycin",
-        usedFor: "Respiratory infections"
+        usedFor: "abxExUsed12"
       }
     ]
   },
 
   {
-    category: "Tetracyclines",
-    description: "Used for a wide range of infections.",
-    typicalDosage: "Usually taken once or twice daily.",
-    use: "Skin and respiratory infections",
+    category: "abxCat5",
+    description: "abxDesc5",
+    typicalDosage: "abxDosePattern4",
+    use: "abxUse5",
+    examples: [
+      {
+        name: "Ciprofloxacin",
+        dose: "500 mg twice daily",
+        usedFor: "abxExUsed13"
+      },
+      {
+        name: "Levofloxacin",
+        dose: "500 mg once daily",
+        usedFor: "abxExUsed14"
+      },
+      {
+        name: "Ofloxacin",
+        usedFor: "abxExUsed15"
+      }
+    ]
+  },
+
+  {
+    category: "abxCat6",
+    description: "abxDesc6",
+    typicalDosage: "abxDosePattern5",
+    use: "abxUse6",
+    examples: [
+      {
+        name: "Gentamicin",
+        usedFor: "abxExUsed16"
+      },
+      {
+        name: "Amikacin",
+        dose: "5–7 mg/kg per day",
+        usedFor: "abxExUsed17"
+      }
+    ]
+  },
+
+  {
+    category: "abxCat7",
+    description: "abxDesc7",
+    typicalDosage: "abxDosePattern6",
+    use: "abxUse7",
     examples: [
       {
         name: "Doxycycline",
         dose: "100 mg twice daily",
-        usedFor: "Respiratory and skin infections"
+        usedFor: "abxExUsed18"
       },
       {
         name: "Tetracycline",
-        usedFor: "Skin infections"
+        usedFor: "abxExUsed19"
       }
     ]
   },
 
   {
-    category: "Nitroimidazoles",
-    description: "Effective for gut and anaerobic infections.",
-    typicalDosage: "Usually taken 2–3 times daily.",
-    use: "Abdominal and parasitic infections",
+    category: "abxCat8",
+    description: "abxDesc8",
+    typicalDosage: "abxDosePattern7",
+    use: "abxUse8",
+    examples: [
+      {
+        name: "Vancomycin",
+        usedFor: "abxExUsed20"
+      },
+      {
+        name: "Teicoplanin",
+        usedFor: "abxExUsed21"
+      }
+    ]
+  },
+
+  {
+    category: "abxCat9",
+    description: "abxDesc9",
+    typicalDosage: "abxDosePattern8",
+    use: "abxUse9",
+    examples: [
+      {
+        name: "Linezolid",
+        usedFor: "abxExUsed22"
+      }
+    ]
+  },
+
+  {
+    category: "abxCat10",
+    description: "abxDesc10",
+    typicalDosage: "abxDosePattern9",
+    use: "abxUse10",
+    examples: [
+      {
+        name: "Daptomycin",
+        usedFor: "abxExUsed23"
+      }
+    ]
+  },
+
+  {
+    category: "abxCat11",
+    description: "abxDesc11",
+    typicalDosage: "abxDosePattern10",
+    use: "abxUse11",
     examples: [
       {
         name: "Metronidazole",
         dose: "400–500 mg 2–3 times daily",
-        usedFor: "Gut infections and amoebiasis"
+        usedFor: "abxExUsed24"
       },
       {
         name: "Ornidazole",
-        usedFor: "Parasitic infections"
+        usedFor: "abxExUsed25"
       },
       {
         name: "Tinidazole",
         dose: "2 g once daily (short course)",
-        usedFor: "Parasitic infections"
+        usedFor: "abxExUsed26"
       }
     ]
   },
 
   {
-    category: "Antifungals",
-    description: "Used to treat fungal infections.",
-    typicalDosage: "Usually taken once daily or as prescribed.",
-    use: "Fungal infections",
+    category: "abxCat12",
+    description: "abxDesc12",
+    typicalDosage: "abxDosePattern11",
+    use: "abxUse12",
     examples: [
       {
-        name: "Fluconazole",
-        dose: "100–200 mg once daily",
-        usedFor: "Fungal infections"
-      },
+        name: "Nitrofurantoin",
+        dose: "100 mg twice daily",
+        usedFor: "abxExUsed27"
+      }
+    ]
+  },
+
+  {
+    category: "abxCat13",
+    description: "abxDesc13",
+    typicalDosage: "abxDosePattern12",
+    use: "abxUse13",
+    examples: [
       {
-        name: "Caspofungin",
-        dose: "70 mg first dose, then 50 mg daily",
-        usedFor: "Severe fungal infections"
+        name: "Fosfomycin",
+        dose: "3 g single dose",
+        usedFor: "abxExUsed28"
+      }
+    ]
+  },
+
+  {
+    category: "abxCat14",
+    description: "abxDesc14",
+    typicalDosage: "abxDosePattern13",
+    use: "abxUse14",
+    examples: [
+      {
+        name: "Aztreonam",
+        dose: "1–2 g every 8–12 hours (IV)",
+        usedFor: "abxExUsed29"
       }
     ]
   }
@@ -256,55 +274,60 @@ export const antibiotics = [
 ];
 
 
-export const restrictedAntibiotics = [
+export const restrictedAntibiotics: {
+  name: string;
+  category: string;
+  reason: TranslationsKey;
+  restriction: TranslationsKey;
+}[] = [
 
   {
     name: "Colistin",
     category: "Polymyxin",
-    reason: "Last-resort antibiotic for highly resistant infections",
-    restriction: "Use only with specialist approval"
+    reason: "resReason3",
+    restriction: "resRest3"
   },
 
   {
     name: "Vancomycin",
     category: "Glycopeptide",
-    reason: "Used for serious resistant infections like MRSA",
-    restriction: "Requires monitoring and controlled use"
+    reason: "resReason1",
+    restriction: "resRest1"
   },
 
   {
     name: "Linezolid",
     category: "Oxazolidinone",
-    reason: "Used for multi-drug resistant infections",
-    restriction: "Should not be used without proper indication"
+    reason: "resReason2",
+    restriction: "resRest2"
   },
 
   {
     name: "Daptomycin",
     category: "Lipopeptide",
-    reason: "Reserved for severe resistant infections",
-    restriction: "Hospital-only use"
+    reason: "resReason4",
+    restriction: "resRest4"
   },
 
   {
     name: "Meropenem",
     category: "Carbapenem",
-    reason: "Very strong antibiotic for critical infections",
-    restriction: "Avoid overuse to prevent resistance"
+    reason: "resReason1",
+    restriction: "resRest1"
   },
 
   {
     name: "Imipenem",
     category: "Carbapenem",
-    reason: "Used in ICU for severe infections",
-    restriction: "Strict hospital usage"
+    reason: "resReason1",
+    restriction: "resRest1"
   },
 
   {
     name: "Tigecycline",
     category: "Glycylcycline",
-    reason: "Used for complicated resistant infections",
-    restriction: "Specialist-controlled use"
+    reason: "resReason5",
+    restriction: "resRest5"
   }
 
 ];

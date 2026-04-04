@@ -7,18 +7,21 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { t } from "@/lib/translations"
 
 export default function ListOfAntibioticsContent() {
+  const { lang } = useLanguage()
   return (
     <div className="space-y-8 text-lg text-muted-foreground">
       {/* Regular Antibiotics Section */}
       <section>
         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-          Antibiotics
+          {t("antibioticsHeading", lang)}
         </h2>
         <p className="mb-4">
-          Common antibiotics grouped by their families. Click on each category to learn more about dosage and usage.
+          {t("antibioticsIntro", lang)}
         </p>
 
         <Accordion type="single" collapsible className="w-full space-y-2">
@@ -31,27 +34,27 @@ export default function ListOfAntibioticsContent() {
               <AccordionTrigger className="text-lg text-left font-semibold text-foreground hover:no-underline py-4 cursor-pointer">
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-200"></span>
-                  {group.category}
+                  {t(group.category, lang)}
                 </div>
               </AccordionTrigger>
               <AccordionContent className="text-base">
                 <div className="space-y-4 pb-2">
-                  <p className="text-muted-foreground">{group.description}</p>
+                  <p className="text-muted-foreground">{t(group.description, lang)}</p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                     <div>
-                      <h4 className="font-semibold text-foreground text-sm mb-1">Typical Dosage</h4>
-                      <p className="text-sm">{group.typicalDosage}</p>
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{t("typicalDosage", lang)}</h4>
+                      <p className="text-sm">{t(group.typicalDosage, lang)}</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground text-sm mb-1">Used For</h4>
-                      <p className="text-sm">{group.use}</p>
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{t("usedFor", lang)}</h4>
+                      <p className="text-sm">{t(group.use, lang)}</p>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm mb-2">Examples</h4>
-                    <div className="flex flex-col gap-2">
+                    <h4 className="font-semibold text-foreground text-sm mb-2">{t("examples", lang)}</h4>
+                    <div className="flex flex-wrap gap-2">
                       {group.examples.map((example) => (
                         <div
                           key={example.name}
@@ -61,6 +64,11 @@ export default function ListOfAntibioticsContent() {
                           {example.dose && (
                             <span className="text-xs text-muted-foreground sm:border-l sm:pl-3 sm:border-primary/30">
                               {example.dose}
+                            </span>
+                          )}
+                          {example.usedFor && (
+                            <span className="text-xs text-muted-foreground">
+                              {t(example.usedFor, lang)}
                             </span>
                           )}
                         </div>
@@ -78,10 +86,10 @@ export default function ListOfAntibioticsContent() {
       <section className="pt-4 border-t">
         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-red-500"></span>
-          Restricted / High-End Antibiotics
+          {t("restrictedAntibiotics", lang)}
         </h2>
         <p className="mb-4">
-          These antibiotics are reserved for severe or resistant infections and require strict medical supervision.
+          {t("restrictedDesc", lang)}
         </p>
 
         <Accordion type="single" collapsible className="w-full space-y-2">
@@ -104,12 +112,12 @@ export default function ListOfAntibioticsContent() {
                   <div className="flex items-start gap-2 p-3 bg-red-100/50 rounded-lg">
                     <span className="text-red-600 mt-0.5">⚠️</span>
                     <div>
-                      <h4 className="font-semibold text-red-800 text-sm">Restriction</h4>
-                      <p className="text-red-700 text-sm">{antibiotic.restriction}</p>
+                      <h4 className="font-semibold text-red-800 text-sm">{t("restriction", lang)}</h4>
+                      <p className="text-red-700 text-sm">{t(antibiotic.restriction, lang)}</p>
                     </div>
                   </div>
                   <p className="text-muted-foreground text-sm pl-1">
-                    <strong>Reason:</strong> {antibiotic.reason}
+                    <strong>{t("reason", lang)}:</strong> {t(antibiotic.reason, lang)}
                   </p>
                 </div>
               </AccordionContent>
@@ -121,8 +129,7 @@ export default function ListOfAntibioticsContent() {
       {/* Warning */}
       <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
         <p className="text-sm text-yellow-800">
-          <strong>⚠️ Important:</strong> Always consult a healthcare professional before taking any antibiotics.
-          Self-medication can lead to antibiotic resistance and serious side effects.
+          ⚠️ {t("antibioticsWarning", lang)}
         </p>
       </div>
     </div>
