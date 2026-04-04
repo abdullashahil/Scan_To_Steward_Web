@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Bell, Clock, Pill, Trash2, Repeat, User, Mail, Edit2 } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { t } from "@/lib/translations"
+import type { TranslationsKey } from "@/lib/translations"
 
 type RepeatOption = "once" | "daily" | "3times"
 
@@ -26,14 +29,15 @@ interface UserInfo {
 }
 
 const REPEAT_LABELS: Record<RepeatOption, string> = {
-  once: "One time",
-  daily: "Daily",
-  "3times": "3 times/day",
+  once: "oneTime",
+  daily: "daily",
+  "3times": "threeTimesDay",
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
 export default function RemindersPage() {
+  const { lang } = useLanguage()
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [medicine, setMedicine] = useState("")
   const [time, setTime] = useState("")
@@ -237,17 +241,17 @@ export default function RemindersPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <User className="w-5 h-5" />
-              Your Information
+              {t("yourInformation", lang)}
             </DialogTitle>
             <DialogDescription>
-              Please enter your details to set up medicine reminders. You can edit this later.
+              {t("userInfoDesc", lang)}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="firstName" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
-                First Name
+                {t("firstName", lang)}
               </Label>
               <Input
                 id="firstName"
@@ -259,7 +263,7 @@ export default function RemindersPage() {
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                Email Address
+                {t("emailAddress", lang)}
               </Label>
               <Input
                 id="email"
@@ -274,7 +278,7 @@ export default function RemindersPage() {
               disabled={!tempFirstName.trim() || !tempEmail.trim()}
               className="w-full"
             >
-              Save & Continue
+              {t("saveContinue", lang)}
             </Button>
           </div>
         </DialogContent>
@@ -284,7 +288,7 @@ export default function RemindersPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
             <Bell className="w-6 h-6 sm:w-8 sm:h-8" />
-            Medicine Reminders
+            {t("medicineReminders", lang)}
           </h1>
           {userInfo && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
@@ -311,7 +315,7 @@ export default function RemindersPage() {
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              Set New Reminder
+              {t("setNewReminder", lang)}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -320,7 +324,7 @@ export default function RemindersPage() {
               <div className="space-y-2">
                 <Label htmlFor="medicine" className="flex items-center gap-2">
                   <Pill className="w-4 h-4" />
-                  Medicine
+                  {t("medicine", lang)}
                 </Label>
                 <Input
                   id="medicine"
@@ -335,7 +339,7 @@ export default function RemindersPage() {
               <div className="space-y-2">
                 <Label htmlFor="time" className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  Time
+                  {t("time", lang)}
                 </Label>
                 <Input
                   id="time"
@@ -350,7 +354,7 @@ export default function RemindersPage() {
               <div className="space-y-2">
                 <Label htmlFor="repeat" className="flex items-center gap-2">
                   <Repeat className="w-4 h-4" />
-                  Repeat
+                  {t("repeat", lang)}
                 </Label>
                 <Select 
                   value={repeat} 
@@ -361,9 +365,9 @@ export default function RemindersPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="once">One time</SelectItem>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="3times">3 times/day</SelectItem>
+                    <SelectItem value="once">{t("oneTime", lang)}</SelectItem>
+                    <SelectItem value="daily">{t("daily", lang)}</SelectItem>
+                    <SelectItem value="3times">{t("threeTimesDay", lang)}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -371,7 +375,7 @@ export default function RemindersPage() {
 
             {!userInfo && (
               <p className="text-sm text-muted-foreground text-center">
-                Please set up your information above to add reminders.
+                {t("pleaseSetupInfo", lang)}
               </p>
             )}
 
@@ -380,7 +384,7 @@ export default function RemindersPage() {
               disabled={!medicine || !time || !userInfo || isLoading}
               className="w-full"
             >
-              {isLoading ? "Adding..." : "Add Reminder"}
+              {isLoading ? t("adding", lang) : t("addReminder", lang)}
             </Button>
           </CardContent>
         </Card>
@@ -389,22 +393,22 @@ export default function RemindersPage() {
         <Card className="border-0 shadow-none p-0 bg-transparent">
           <CardHeader className="px-0 sm:px-0 pb-4">
             <CardTitle className="text-lg sm:text-xl text-blue-600">
-              ⏰ Your Reminders ({reminders.length})
+              ⏰ {t("yourReminders", lang)} ({reminders.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0 sm:px-0">
             {reminders.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                No reminders yet. Add one above!
+                {t("noReminders", lang)}
               </p>
             ) : (
               <div className="space-y-3">
                 {reminders.map((reminder) => {
                   // Convert 24h time to 12h format with AM/PM
                   const [hours, minutes] = reminder.time.split(':').map(Number)
-                  const period = hours >= 12 ? 'pm' : 'am'
+                  const period = hours >= 12 ? 'PM' : 'AM'
                   const displayHours = hours % 12 || 12
-                  const displayTime = `${displayHours}:${minutes.toString().padStart(2, '0')}${period}`
+                  const displayTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
                   
                   return (
                     <div
@@ -428,7 +432,7 @@ export default function RemindersPage() {
                         </p>
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-0.5">
                           <Repeat className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                          <span>{REPEAT_LABELS[reminder.repeat]}</span>
+                          <span>{t(REPEAT_LABELS[reminder.repeat] as TranslationsKey, lang)}</span>
                         </div>
                       </div>
                       

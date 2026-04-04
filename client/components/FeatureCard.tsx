@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { GraduationCap, FileSearch, Bot, BellRing, type LucideIcon } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/lib/translations";
 
 type Variant = "primary" | "teal" | "amber" | "rose";
 
@@ -28,13 +30,15 @@ export default function FeatureCard({
   iconName,
   title,
   description,
-  ctaLabel = "Try this",
+  ctaLabel,
   variant = "primary",
   href,
   index = 0,
 }: FeatureCardProps) {
+  const { lang } = useLanguage();
   const Icon = iconMap[iconName];
   const { bg, text } = variantStyles[variant];
+  const buttonLabel = ctaLabel || t("tryThis", lang);
 
   return (
     <motion.div
@@ -76,7 +80,7 @@ export default function FeatureCard({
         `}
         onClick={() => href && (window.location.href = href)}
       >
-        {ctaLabel}
+        {buttonLabel}
         <span className="transition-transform duration-200 group-hover:translate-x-1">
           →
         </span>

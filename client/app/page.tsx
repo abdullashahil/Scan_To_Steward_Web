@@ -1,96 +1,45 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, ArrowRight, Languages } from "lucide-react";
-// import heroImage from "@/public/hero-medical.jpeg";
+import { Shield, ArrowRight } from "lucide-react";
 import FeatureCard from "@/components/FeatureCard";
 import Image from "next/image";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-
-const features = [
-  {
-    iconName: "GraduationCap" as const,
-    title: "Patient Education",
-    description: "Understand your antibiotics and how to use them safely.",
-    variant: "primary" as const,
-    href: "/education",
-  },
-  {
-    iconName: "FileSearch" as const,
-    title: "Prescription Analysis",
-    description: "Upload your prescription and get a clear medicine explanation.",
-    variant: "teal" as const,
-    href: "/prescription",
-  },
-  {
-    iconName: "Bot" as const,
-    title: "AI Chatbot Assistant",
-    description: "Ask any antibiotic question and get instant AI guidance.",
-    variant: "amber" as const,
-    href: "/chat",
-  },
-  {
-    iconName: "BellRing" as const,
-    title: "Adherence Reminders",
-    description: "Get smart reminders so you never miss your medicine.",
-    variant: "rose" as const,
-    href: "/reminders",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/lib/translations";
 
 export default function Home() {
-  // Inline component for language selection in nav
-  function LangDropdown() {
-    const [open, setOpen] = useState(false);
-    const [lang, setLang] = useState<"en" | "hi" | "ml">("en");
+  const { lang } = useLanguage();
 
-    const labelMap: Record<typeof lang, string> = {
-      en: "English",
-      hi: "हिन्दी",
-      ml: "Malayalam",
-    } as const;
-
-    const flagMap: Record<typeof lang, string> = {
-      en: "🇬🇧",
-      hi: "🇮🇳",
-      ml: "🇮🇳",
-    } as const;
-
-    return (
-      <DropdownMenu onOpenChange={(v) => setOpen(v)} open={open}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            className="inline-flex items-center gap-2 border-border bg-card text-foreground hover:bg-muted/60 cursor-pointer"
-          >
-            <Languages className="h-4 w-4 text-foreground/80" aria-hidden="true" />
-            <span className="hidden sm:inline">{labelMap[lang]}</span>
-            <span className="sm:hidden" aria-hidden="true">{flagMap[lang]}</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
-          {([
-            { code: "en", label: "English", flag: "🇬🇧" },
-            { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
-            { code: "ml", label: "Malayalam", flag: "🇮🇳" },
-          ] as const).map((opt) => (
-            <DropdownMenuItem
-              key={opt.code}
-              className={`cursor-pointer flex items-center gap-2 ${lang === opt.code ? "text-foreground" : "text-muted-foreground"}`}
-              onClick={() => setLang(opt.code)}
-            >
-              <span className="text-base" aria-hidden>
-                {opt.flag}
-              </span>
-              <span>{opt.label}</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
+  const features = [
+    {
+      iconName: "GraduationCap" as const,
+      title: t("patientEducation", lang),
+      description: t("patientEducationDesc", lang),
+      variant: "primary" as const,
+      href: "/education",
+    },
+    {
+      iconName: "FileSearch" as const,
+      title: t("prescriptionAnalysis", lang),
+      description: t("prescriptionAnalysisDesc", lang),
+      variant: "teal" as const,
+      href: "/prescription",
+    },
+    {
+      iconName: "Bot" as const,
+      title: t("aiChatbot", lang),
+      description: t("aiChatbotDesc", lang),
+      variant: "amber" as const,
+      href: "/chat",
+    },
+    {
+      iconName: "BellRing" as const,
+      title: t("adherenceReminders", lang),
+      description: t("adherenceRemindersDesc", lang),
+      variant: "rose" as const,
+      href: "/reminders",
+    },
+  ];
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
@@ -105,14 +54,14 @@ export default function Home() {
             >
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-4 py-1.5 mb-6">
                 <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-                <span className="text-xs font-medium text-white/80">AI-Powered Healthcare</span>
+                <span className="text-xs font-medium text-white/80">{t("heroBadge", lang)}</span>
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
-                Smarter Antibiotic{" "}
-                <span className="text-gradient">Stewardship</span>
+                {t("heroTitle1", lang)}{" "}
+                <span className="text-gradient">{t("heroTitle2", lang)}</span>
               </h1>
               <p className="text-lg text-white/75 leading-relaxed max-w-lg mb-8">
-                Scan prescriptions, educate patients, track adherence, and get AI-powered guidance — all in one platform designed for safer antibiotic use.
+                {t("heroDescription", lang)}
               </p>
               <div className="flex flex-wrap gap-4">
                 <button
@@ -124,7 +73,7 @@ export default function Home() {
                     }
                   }}
                 >
-                  Get Started <ArrowRight className="h-4 w-4" />
+                  {t("getStarted", lang)} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </motion.div>
@@ -158,12 +107,12 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-14"
           >
-            <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Modules</span>
+            <span className="text-sm font-semibold text-secondary uppercase tracking-wider">{t("modulesBadge", lang)}</span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mt-3 mb-4">
-              Four Tools for Safer Antibiotic Use
+              {t("featuresTitle", lang)}
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              A comprehensive suite designed to optimize every step of the antibiotic lifecycle.
+              {t("featuresDescription", lang)}
             </p>
           </motion.div>
 
@@ -185,10 +134,10 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              24/7 AI Support for Safer Antibiotic Use
+              {t("footerCtaTitle", lang)}
             </h2>
             <p className="text-white/70 mb-8 max-w-md mx-auto">
-              Join healthcare professionals using intelligent tools to combat antibiotic resistance.
+              {t("footerCtaDesc", lang)}
             </p>
           </motion.div>
         </div>
@@ -199,9 +148,9 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-secondary" />
-            <span className="font-semibold text-foreground text-sm">Scan to Steward</span>
+            <span className="font-semibold text-foreground text-sm">{t("appName", lang)}</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2026 Scan to Steward. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">{t("footerCopyright", lang)}</p>
         </div>
       </footer>
     </div>
