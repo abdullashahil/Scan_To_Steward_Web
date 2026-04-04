@@ -110,7 +110,7 @@ export default function Prescription() {
       formData.append("file", file);
       formData.append("role", role);
 
-      const response = await fetch(`${API_BASE_URL}/analyze-prescription`, {
+      const response = await fetch(`${API_BASE_URL}/analyze-prescription/`, {
         method: "POST",
         body: formData,
       });

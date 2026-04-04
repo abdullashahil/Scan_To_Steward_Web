@@ -92,7 +92,7 @@ export default function RemindersPage() {
       const [hours, minutes] = time.split(":")
       reminderDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
 
-      const response = await fetch(`${API_BASE_URL}/reminders`, {
+      const response = await fetch(`${API_BASE_URL}/reminders/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
