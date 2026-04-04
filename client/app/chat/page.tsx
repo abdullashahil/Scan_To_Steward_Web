@@ -6,7 +6,6 @@ import { Bot, ArrowUp, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 const STREAMING_SPEED = 5; // characters per tick
 
 type Message = {
