@@ -4,7 +4,8 @@ Handles CRUD operations and email generation.
 """
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from db import get_db, is_db_connected
 
 logger = logging.getLogger(__name__)
@@ -127,12 +128,15 @@ def generate_email_body(user_name: str, medicine: str) -> dict:
     """Generate email subject and body for a reminder."""
     subject = f"💊 Medicine Reminder: Time to take {medicine}"
     
+    # Convert to IST (Indian Standard Time, UTC+5:30)
+    ist_time = datetime.now(ZoneInfo("Asia/Kolkata"))
+    
     body = f"""Hi {user_name},
 
 This is a friendly reminder to take your medicine:
 
 🩺 Medicine: {medicine}
-⏰ Time: {datetime.now().strftime('%I:%M %p')}
+⏰ Time: {ist_time.strftime('%I:%M %p')} IST
 
 Stay healthy!
 
