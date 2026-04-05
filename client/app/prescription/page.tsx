@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -27,6 +28,7 @@ type Message = {
 const PHARMACIST_CODE = process.env.NEXT_PUBLIC_PHARMACIST_CODE;
 
 export default function Prescription() {
+  const { lang } = useLanguage();
   const [role, setRole] = useState<Role>(null);
   const [authCode, setAuthCode] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -109,6 +111,7 @@ export default function Prescription() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("role", role);
+      formData.append("lang", lang);
 
       const response = await fetch(`${API_BASE_URL}/analyze-prescription/`, {
         method: "POST",

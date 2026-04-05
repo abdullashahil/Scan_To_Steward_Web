@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Bot, ArrowUp, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const STREAMING_SPEED = 5; // characters per tick
@@ -15,6 +16,7 @@ type Message = {
 };
 
 export default function Chat() {
+  const { lang } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -78,7 +80,7 @@ export default function Chat() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: input, lang }),
       });
 
       if (!response.ok) {

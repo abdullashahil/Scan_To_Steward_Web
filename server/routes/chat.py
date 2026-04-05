@@ -12,6 +12,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 class ChatRequest(BaseModel):
     message: str
     context: Optional[str] = None
+    lang: Optional[str] = "en"
 
 
 class ChatResponse(BaseModel):
@@ -76,6 +77,12 @@ You MAY include the following when relevant (do NOT force all):
 - Use headings (##), bullet points, emojis or bold text where helpful
 - Keep formatting minimal and readable (avoid over-formatting)
 - Do NOT use code blocks unless necessary
+
+LANGUAGE:
+Respond in the following language: {request.lang}
+If the language is "en" or "english", respond in English.
+If the language is "hi" or "hindi", respond in Hindi.
+If the language is "ml" or "malayalam", respond in Malayalam.
 
 ---
 

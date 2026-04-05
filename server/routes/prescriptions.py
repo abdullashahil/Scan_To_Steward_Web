@@ -23,7 +23,8 @@ class AnalyzePrescriptionResponse(BaseModel):
 @router.post("/", response_model=AnalyzePrescriptionResponse)
 async def analyze_prescription(
     file: UploadFile = File(...),
-    role: str = Form(...)
+    role: str = Form(...),
+    lang: str = Form("en")
 ):
     """
     Enhanced prescription analyzer with Vision AI + RAG + LLM.
@@ -71,7 +72,7 @@ async def analyze_prescription(
 
     # Step 3: LLM - Generate summary response
     try:
-        messages = build_summary_prompt(extracted_text, role, policy_context)
+        messages = build_summary_prompt(extracted_text, role, policy_context, lang)
 
         llm_response = await call_openrouter(messages)
 

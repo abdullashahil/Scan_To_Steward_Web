@@ -80,7 +80,7 @@ IMPORTANT:
 async def call_openrouter(
     messages: List[dict],
     model: str = PRIMARY_MODEL,
-    temperature: float = 0.1,
+    temperature: float = 0.2,
     max_retries: int = 1
 ) -> str:
     """
@@ -113,7 +113,7 @@ async def call_openrouter(
 
 async def call_openrouter_vision(file: UploadFile) -> str:
     """
-    Use Gemini 2.5 Flash-Lite vision model to extract text from prescription image.
+    Use Gemini 2.5 Flash vision model to extract text from prescription image.
     
     Args:
         file: Uploaded image file (image or PDF)
@@ -180,7 +180,7 @@ async def call_openrouter_vision(file: UploadFile) -> str:
         raise e
 
 
-def build_summary_prompt(extracted_text: str, role: str, policy_context: str) -> List[dict]:
+def build_summary_prompt(extracted_text: str, role: str, policy_context: str, lang: str = "en") -> List[dict]:
 
     if role == "pharmacist":
         system_prompt = f"""
@@ -436,6 +436,12 @@ DO NOT write "Not specified" - infer from drug characteristics.
 
 POLICY CONTEXT:
 {policy_context}
+
+LANGUAGE:
+Respond in the following language: {lang}
+If the language is "en" or "english", respond in English.
+If the language is "hi" or "hindi", respond in Hindi.
+If the language is "ml" or "malayalam", respond in Malayalam.
 """
 
     else:  # PATIENT
@@ -627,6 +633,11 @@ Examples:
 ## When to See a Doctor 🚨
 - Add warning signs if condition worsens
 
+LANGUAGE:
+Respond in the following language: {lang}
+If the language is "en" or "english", respond in English.
+If the language is "hi" or "hindi", respond in Hindi.
+If the language is "ml" or "malayalam", respond in Malayalam.
 """
 
     user_prompt = f"""
@@ -634,6 +645,12 @@ Analyze this prescription and generate a complete response.
 
 Prescription:
 {extracted_text}
+
+LANGUAGE:
+Respond in the following language: {lang}
+If the language is "en" or "english", respond in English.
+If the language is "hi" or "hindi", respond in Hindi.
+If the language is "ml" or "malayalam", respond in Malayalam.
 """
 
     return [
