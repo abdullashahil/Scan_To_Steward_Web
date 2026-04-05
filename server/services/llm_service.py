@@ -356,6 +356,10 @@ Write:
 For each antibiotic:
 - Extract BRAND NAME (as written)
 - Identify and normalize GENERIC COMPOSITION using medical knowledge
+- LANGUAGE RULE: Translate/Write the Brand Name and Generic Composition in the selected language ({lang}).
+  - For Hindi: Use Devanagari script (e.g., "ऑग्मेंटिन ६२५ - (अमॉक्सिसिलिन + क्लैवुलेनेट)")
+  - For Malayalam: Use Malayalam script (e.g., "ഓഗ്മെന്റിന് 625 - (അമോക്‌സിസിലിൻ + ക്ലാവുലനേറ്റ്)")
+  - For English: Keep as is (e.g., "Augmentin 625 - (Amoxicillin + Clavulanate)")
 
 ### 1. <Brand Name> - (<Generic Composition>)
 - Dose:
@@ -549,6 +553,11 @@ For EACH antibiotic:
 - ALWAYS format EXACTLY as:
 
 Brand Name - (Generic Composition)
+
+- LANGUAGE RULE: Translate/Write the Brand Name and Generic Composition in the selected language ({lang}).
+  - For Hindi: Use Devanagari script (e.g., "ऑग्मेंटिन ६२५ - (अमॉक्सिसिलिन + क्लैवुलेनेट)")
+  - For Malayalam: Use Malayalam script (e.g., "ഓഗ്മെന്റിന് 625 - (അമോക്‌സിസിലിൻ + ക്ലാവുലനേറ്റ്)")
+  - For English: Keep as is (e.g., "Augmentin 625 - (Amoxicillin + Clavulanate)")
 
 ⚠️ DO NOT skip the generic composition
 ⚠️ DO NOT output only the brand name
