@@ -62,6 +62,13 @@ export const translations = {
     // Feature Card
     tryThis: "Try this",
 
+    // Prescription Page - Role Selection
+    selectRole: "Select your role to continue",
+    patientRole: "Patient",
+    patientRoleDesc: "Simple explanation of your prescription",
+    pharmacistRole: "Pharmacist",
+    pharmacistRoleDesc: "Detailed clinical prescription analysis",
+
     // Antibiotic Resistance Content
     howResistanceOccurs: "How does antibiotic resistance occur?",
     slide1Line1: "Using antibiotics without a proper indication",
@@ -291,6 +298,13 @@ export const translations = {
     // Feature Card
     tryThis: "यह आज़माएं",
 
+    // Prescription Page - Role Selection
+    selectRole: "जारी रखने के लिए अपनी भूमिका चुनें",
+    patientRole: "रोगी",
+    patientRoleDesc: "आपके प्रिस्क्रिप्शन का सरल स्पष्टीकरण",
+    pharmacistRole: "फार्मासिस्ट",
+    pharmacistRoleDesc: "विस्तृत नैदानिक प्रिस्क्रिप्शन विश्लेषण",
+
     // Antibiotic Resistance Content
     howResistanceOccurs: "एंटीबायोटिक प्रतिरोध कैसे होता है?",
     slide1Line1: "उचित कारण के बिना एंटीबायोटिक का उपयोग करना",
@@ -519,6 +533,13 @@ export const translations = {
     
     // Feature Card
     tryThis: "ഇത് ഉപയോഗിക്കുക",
+
+    // Prescription Page - Role Selection
+    selectRole: "തുടരാൻ നിങ്ങളുടെ പങ്ക് തിരഞ്ഞെടുക്കുക",
+    patientRole: "രോഗി",
+    patientRoleDesc: "നിങ്ങളുടെ പ്രിസ്ക്രിപ്ഷന്റെ ലളിതമായ വിശദീകരണം",
+    pharmacistRole: "ഫാർമസിസ്റ്റ്",
+    pharmacistRoleDesc: "വിശദമായ ക്ലിനിക്കൽ പ്രിസ്ക്രിപ്ഷൻ വിശകലനം",
 
     // Antibiotic Resistance Content
     howResistanceOccurs: "ആന്റിബയോട്ടിക് പ്രതിരോധം എങ്ങനെ സംഭവിക്കുന്നു?",

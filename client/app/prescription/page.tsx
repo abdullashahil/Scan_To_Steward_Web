@@ -9,9 +9,11 @@ import {
   X,
   User,
   ShieldCheck,
+  ArrowLeft,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/lib/translations";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -29,6 +31,7 @@ const PHARMACIST_CODE = process.env.NEXT_PUBLIC_PHARMACIST_CODE;
 
 export default function Prescription() {
   const { lang } = useLanguage();
+  const t = translations[lang as keyof typeof translations];
   const [role, setRole] = useState<Role>(null);
   const [authCode, setAuthCode] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,6 +45,21 @@ export default function Prescription() {
   const [showResult, setShowResult] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [showRemoveModal, setShowRemoveModal] = useState(false);
+
+  function handleBackToRoleSelection() {
+    // If there's an analyzed prescription, show confirmation modal
+    if (showResult || analysis) {
+      setShowRemoveModal(true);
+    } else {
+      // Just go back without confirmation
+      setRole(null);
+      setFile(null);
+      setShowResult(false);
+      setAnalysis("");
+      setIsAuthenticated(false);
+      setAuthCode("");
+    }
+  }
 
   const handleRemoveFile = () => {
     setFile(null);
@@ -145,11 +163,11 @@ export default function Prescription() {
         <div className="max-w-md w-full space-y-6 text-center">
 
           <h1 className="text-2xl font-bold text-foreground">
-            Prescription Analysis
+            {t.prescriptionAnalysis}
           </h1>
 
           <p className="text-muted-foreground text-sm">
-            Select your role to continue
+            {t.selectRole}
           </p>
 
           <div className="space-y-4">
@@ -160,9 +178,9 @@ export default function Prescription() {
             >
               <User className="text-secondary" />
               <div className="text-left">
-                <p className="font-medium">Patient</p>
+                <p className="font-medium">{t.patientRole}</p>
                 <p className="text-xs text-muted-foreground">
-                  Simple explanation of your prescription
+                  {t.patientRoleDesc}
                 </p>
               </div>
             </button>
@@ -173,9 +191,9 @@ export default function Prescription() {
             >
               <ShieldCheck className="text-secondary" />
               <div className="text-left">
-                <p className="font-medium">Pharmacist</p>
+                <p className="font-medium">{t.pharmacistRole}</p>
                 <p className="text-xs text-muted-foreground">
-                  Detailed clinical prescription analysis
+                  {t.pharmacistRoleDesc}
                 </p>
               </div>
             </button>
@@ -194,6 +212,16 @@ export default function Prescription() {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
         <div className="max-w-md w-full space-y-6">
+
+          <div className="flex items-center">
+            <button
+              onClick={handleBackToRoleSelection}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          </div>
 
           <h2 className="text-xl font-semibold text-center">
             Pharmacist Verification
@@ -239,6 +267,13 @@ export default function Prescription() {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleBackToRoleSelection}
+            className="p-1.5 rounded-full hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground transition mr-1"
+            title="Back to role selection"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <FileText className="h-5 w-5 text-secondary" />
           <span className="font-semibold">
             {role === "patient"
@@ -321,7 +356,7 @@ export default function Prescription() {
 
         {/* Uploaded File Display - Always visible when file exists */}
         {file && (
-          <div className="bg-muted/50 border-b border-border px-4 py-2">
+          <div className="bg-muted/50 border-b border-border px-4 py-2 mt-1">
             <div className="max-w-4xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-secondary" />
@@ -415,7 +450,7 @@ export default function Prescription() {
               Remove Prescription?
             </h3>
             <p className="text-sm text-muted-foreground">
-              Removing the prescription will reset the chat and delete all conversation history. This action cannot be undone.
+              Removing the prescription will reset the chat and delete this conversation history. This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
