@@ -42,6 +42,7 @@ async def analyze_prescription(
     # Step 1: Vision Extraction - Use Gemini 2.5 Flash-Lite to extract text from image
     try:
         extracted_text = await call_openrouter_vision(file)
+        print(f"Extracted text from doc: {extracted_text}")
     except Exception as e:
         logger.error(f"Vision extraction failed: {e}")
         return AnalyzePrescriptionResponse(

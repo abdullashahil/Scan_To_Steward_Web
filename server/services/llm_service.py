@@ -9,8 +9,13 @@ from openai import AsyncOpenAI
 from fastapi import UploadFile
 
 # Configure logger
+# Configure logger
 logger = logging.getLogger(__name__)
-
+if not logger.handlers:  # Add this check
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
 # OpenRouter client setup
 openrouter_client = AsyncOpenAI(
@@ -19,11 +24,12 @@ openrouter_client = AsyncOpenAI(
 )
 
 # Available models
-PRIMARY_MODEL = "meta-llama/llama-3.1-8b-instruct"
+# PRIMARY_MODEL = "meta-llama/llama-3.1-8b-instruct"
+PRIMARY_MODEL = "google/gemini-2.5-flash"
 FALLBACK_MODEL = "mistralai/mistral-7b-instruct"
-VISION_MODEL = "google/gemini-2.5-flash-lite"
+VISION_MODEL = "google/gemini-2.5-flash"
 EXTRACTION_PROMPT = """
-Extract prescription details from this handwritten medical image.
+Extract prescription details from this handwritten/printed medical image.
 
 INTELLIGENT EXTRACTION RULES:
 - Handwriting may be unclear → interpret using medical knowledge
@@ -32,71 +38,49 @@ INTELLIGENT EXTRACTION RULES:
 - Do NOT guess completely unknown words
 - If uncertain → keep closest meaningful interpretation
 
+---
+
 ANTIBIOTIC FILTERING (VERY IMPORTANT):
 - Identify ALL medicines in the prescription
 - ONLY include medicines that are ANTIBIOTICS
-- Ignore non-antibiotic drugs (e.g., probiotics, antacids, vitamins, painkillers, antihistamines)
+- Ignore non-antibiotic drugs (e.g., probiotics like happibiotic, antacids, vitamins, painkillers, antihistamines)
 - Use your medical knowledge to classify medicines correctly
-
-CRITICAL MEDICINE NORMALIZATION RULE:
-For EACH antibiotic:
-- Extract BRAND NAME (as written)
-- Identify correct GENERIC COMPOSITION using medical knowledge or from the policy context
-- ALWAYS format as:
-
-Brand Name - (Generic Composition)
-
-Examples:
-- Augmentin 625 → Augmentin 625 - (Amoxicillin + Clavulanate)
-- Azee 500 → Azee 500 - (Azithromycin)
-- Mox CV 625 → Mox CV 625 - (Amoxicillin + Clavulanic Acid)
-
-⚠️ This format is STRICT and MUST be followed
-
-OUTPUT RULES:
-- Output MUST be clean Markdown (React Markdown compatible)
-- Keep structure consistent and readable
-- Do NOT include empty sections
-- You MAY include additional relevant details if clearly present
 
 ---
 
-OUTPUT FORMAT:
+OUTPUT FORMAT (STRICT JSON):
 
-## Patient Details
-(Include only if present)
-- Name:
-- Age/Sex:
-- Date:
-- Hospital/Clinic:
+{
+  "patient_details": {
+    "name": "",
+    "age_sex": "",
+    "date": "",
+    "hospital": ""
+  },
+  "medicines": [
+    {
+      "name": "",
+      "dose": "",
+      "frequency": "",
+      "duration": "",
+      "notes": ""
+    }
+  ],
+  "diagnosis": "",
+  "notes": ""
+}
 
-## Diagnosis
-(Include only if present)
-- Condition / Symptoms:
-
-## Antibiotics Prescribed
-(Include ONLY antibiotic medicines)
-
-### 1. <Standard Medicine Name>
-- Dose:
-- Frequency:
-- Duration:
-- Instructions:
-
-(Repeat for each antibiotic)
-
-## Additional Notes
-(Include if any extra instructions, warnings, or observations exist)
-
-## Other Relevant Details
-(Include any clearly visible useful info not covered above)
+IMPORTANT:
+- Include ANTIBIOTIC MEDICINES ONLY
+- Correct obvious spelling mistakes in medicine names (e.g., "Pantuid" → "Pantocid")
+- If unclear, keep best guess
 """
 
 
 async def call_openrouter(
     messages: List[dict],
     model: str = PRIMARY_MODEL,
-    temperature: float = 0.3,
+    temperature: float = 0.1,
     max_retries: int = 1
 ) -> str:
     """
@@ -116,6 +100,7 @@ async def call_openrouter(
             model=model,
             messages=messages,
             temperature=temperature,
+            max_tokens=1500,
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -182,7 +167,8 @@ async def call_openrouter_vision(file: UploadFile) -> str:
                     ]
                 }
             ],
-            temperature=0.3,
+            temperature=0.1,
+            max_tokens=1500,
         )
         
         extracted_text = response.choices[0].message.content
@@ -208,6 +194,24 @@ SAFE INFERENCE RULES (CRITICAL):
 If certain fields are missing from the prescription, you are allowed to infer using strong medical knowledge.
 
 DO NOT write "Not specified" unless absolutely impossible.
+
+FREQUENCY STANDARD (STRICT):
+- OD → Once daily
+- BD → Twice daily
+- TDS → Three times daily
+- QID → Four times daily
+- 1-0-1 → Twice daily (morning and night)
+- 1-1-1 → Three times daily
+- SOS → Only when needed
+
+ALWAYS use EXACT wording above.
+
+CONFIDENCE RULE:
+If a medicine cannot be confidently identified as an antibiotic:
+→ EXCLUDE it
+
+DO NOT guess.
+DO NOT assume.
 
 INFER THE FOLLOWING:
 
@@ -327,6 +331,23 @@ Before adding any medicine:
 - Ask internally: "Is this an antibiotic?"
 - If NO → SKIP
 - If UNSURE → SKIP
+
+FINAL VALIDATION STEP (MANDATORY):
+
+Before generating output:
+1. Create a hidden list of all medicines
+2. Filter only antibiotics
+3. COUNT them
+
+If count = 0:
+→ Output ONLY:
+"No antibiotics identified in this prescription"
+
+If count > 0:
+→ Ensure ALL antibiotics are included
+→ Ensure NO non-antibiotics are included
+
+DO NOT skip this step.
 
 If no antibiotics found:
 Write:
@@ -450,6 +471,24 @@ SIMPLIFICATION RULES (VERY IMPORTANT):
 
 - Always explain in human language
 
+FREQUENCY STANDARD (STRICT):
+- OD → Once daily
+- BD → Twice daily
+- TDS → Three times daily
+- QID → Four times daily
+- 1-0-1 → Twice daily (morning and night)
+- 1-1-1 → Three times daily
+- SOS → Only when needed
+
+ALWAYS use EXACT wording above.
+
+CONFIDENCE RULE:
+If a medicine cannot be confidently identified as an antibiotic:
+→ EXCLUDE it
+
+DO NOT guess.
+DO NOT assume.
+
 ---
 
 FORMAT:
@@ -525,6 +564,23 @@ Before adding any medicine:
 - If NO → SKIP
 - If UNSURE → SKIP
 
+FINAL VALIDATION STEP (MANDATORY):
+
+Before generating output:
+1. Create a hidden list of all medicines
+2. Filter only antibiotics
+3. COUNT them
+
+If count = 0:
+→ Output ONLY:
+"No antibiotics identified in this prescription"
+
+If count > 0:
+→ Ensure ALL antibiotics are included
+→ Ensure NO non-antibiotics are included
+
+DO NOT skip this step.
+
 If no antibiotics found:
 Write:
 "No antibiotics identified in this prescription"
@@ -584,65 +640,6 @@ Prescription:
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt}
     ]
-
-# def build_qa_prompt(extracted_text: str, message: str, role: str, policy_context: str) -> List[dict]:
-#     role_instructions = {
-#         "patient": "You are a helpful medical assistant. Use simple, clear language. Be friendly and practical.",
-#         "pharmacist": "You are a clinical pharmacy assistant. Provide accurate and structured medical explanations."
-#     }
-
-#     system_prompt = f"""
-# You are a helpful medical assistant answering questions about a prescription.
-
-# ROLE:
-# {role_instructions.get(role, role_instructions["patient"])}
-
-# IMPORTANT:
-
-# ✅ ALWAYS answer if question is related to prescription, medical, health, or pharmaceutical topics
-# ✅ You ARE allowed to explain:
-# - What medicine is used for
-# - Why it is prescribed
-
-# ❌ NEVER say:
-# "I cannot provide medical advice"
-
-# ❌ NEVER refuse unless completely unrelated
-
-# ✅ If unsure:
-# Say:
-# "Based on this medicine, it is commonly used for..."
-
-# ---
-
-# Keep answers:
-# - Simple (for patient)
-# - Clear
-# - Direct
-
-# ---
-
-# Prescription:
-# {extracted_text}
-
-# Policy:
-# {policy_context}
-# """
-
-#     user_prompt = f"""
-#     Prescription text:
-#     {extracted_text}
-
-#     User question:
-#     {message}
-
-#     Answer clearly and directly.
-#     """
-
-#     return [
-#         {"role": "system", "content": system_prompt},
-#         {"role": "user", "content": user_prompt}
-#     ]
 
 def generate_fallback_response(extracted_text: str, role: str) -> str:
     """
