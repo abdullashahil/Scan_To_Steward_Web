@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, Languages } from "lucide-react";
+import { Languages } from "lucide-react";
+import Image from "next/image";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -65,8 +66,16 @@ export default function Nav() {
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Shield className="h-7 w-7 text-secondary" />
+          <Image
+            src="/logo.png"
+            alt="Scan to Steward"
+            width={140}
+            height={40}
+            className="h-12 w-auto"
+            priority
+          />
           <span className="font-bold text-lg text-foreground">{t("appName", lang)}</span>
+
         </Link>
         <div className="relative">
           <LangDropdown />

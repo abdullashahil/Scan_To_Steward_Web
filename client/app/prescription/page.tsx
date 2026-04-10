@@ -378,6 +378,16 @@ export default function Prescription() {
           </div>
         )}
 
+        {/* Loading Animation - Show while analyzing before result */}
+        {thinking && !showResult && (
+          <div className="flex-1 flex items-center justify-center pt-48">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-secondary/20 border-t-secondary rounded-full animate-spin" />
+              <p className="text-sm text-muted-foreground">Analyzing prescription...</p>
+            </div>
+          </div>
+        )}
+
         {/* Analysis Result Display */}
         {showResult && (
           <motion.div

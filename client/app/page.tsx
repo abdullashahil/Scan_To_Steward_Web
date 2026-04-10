@@ -43,7 +43,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="hero-gradient relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
+      <section className="hero-gradient relative overflow-hidden pt-32 pb-10 lg:pt-40 lg:pb-28">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(175_55%_42%_/_0.15),_transparent_60%)]" />
         <div className="max-w-6xl mx-auto px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -93,6 +93,15 @@ export default function Home() {
                 className="relative rounded-2xl shadow-2xl animate-float"
               />
             </motion.div>
+          </div>
+
+          {/* Attribution - positioned under image on desktop, right-aligned on mobile */}
+          <div className="mt-8 lg:mt-6 text-right">
+            <p className="text-sm text-white/60">
+              <span className="block lg:inline font-bold">Designed by</span>{" "}
+              <span className="block lg:inline">Department of Pharmacy Practice,</span>{" "}
+              <span className="block lg:inline">Al Shifa College of Pharmacy</span>
+            </p>
           </div>
         </div>
       </section>

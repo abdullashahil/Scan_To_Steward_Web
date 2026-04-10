@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Scan To Steward",
   description: "Scan To Steward",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
