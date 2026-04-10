@@ -4,6 +4,8 @@ export const translations = {
   en: {
     // Nav
     appName: "Scan to Steward",
+    appNamePart1: "Scan to",
+    appNamePart2: "Steward",
     
     // Hero Section
     heroBadge: "AI-Powered Healthcare",
@@ -245,6 +247,8 @@ export const translations = {
   hi: {
     // Nav
     appName: "स्कैन टू स्टीवर्ड",
+    appNamePart1: "स्कैन टू",
+    appNamePart2: "स्टीवर्ड",
     
     // Hero Section
     heroBadge: "AI-संचालित स्वास्थ्य सेवा",
@@ -486,6 +490,8 @@ export const translations = {
   ml: {
     // Nav
     appName: "സ്കാൻ ടു സ്റ്റൂവാർഡ്",
+    appNamePart1: "സ്കാൻ ടു",
+    appNamePart2: "സ്റ്റൂവാർഡ്",
     
     // Hero Section
     heroBadge: "AI-പവർഡ് ഹെൽത്ത്കെയർ",

@@ -74,7 +74,10 @@ export default function Nav() {
             className="h-12 w-auto"
             priority
           />
-          <span className="font-bold text-lg text-foreground">{t("appName", lang)}</span>
+          <span className="font-bold text-lg">
+            <span className="text-blue-800">{t("appNamePart1", lang)}</span>{" "}
+            <span className="text-green-800">{t("appNamePart2", lang)}</span>
+          </span>
 
         </Link>
         <div className="relative">

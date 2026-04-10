@@ -20,27 +20,35 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def ingest_pdf(
-    pdf_path: str,
+def ingest_pdfs(
+    pdf_paths: list[str],
     output_dir: str = "faiss_index",
     chunk_size: int = 1000,
     chunk_overlap: int = 200,
 ) -> None:
     """
-    Load PDF, split into chunks, generate embeddings, and save FAISS index.
+    Load multiple PDFs, split into chunks, generate embeddings, and save FAISS index.
     
     Args:
-        pdf_path: Path to the PDF file
+        pdf_paths: List of paths to PDF files
         output_dir: Directory to save the FAISS index
         chunk_size: Size of text chunks
         chunk_overlap: Overlap between chunks
     """
-    logger.info(f"Loading PDF: {pdf_path}")
+    all_documents = []
     
-    # Load PDF
-    loader = PyPDFLoader(pdf_path)
-    documents = loader.load()
-    logger.info(f"Loaded {len(documents)} pages from PDF")
+    for pdf_path in pdf_paths:
+        logger.info(f"Loading PDF: {pdf_path}")
+        # Load PDF
+        loader = PyPDFLoader(pdf_path)
+        documents = loader.load()
+        # Add source metadata
+        for doc in documents:
+            doc.metadata["source"] = pdf_path
+        all_documents.extend(documents)
+        logger.info(f"Loaded {len(documents)} pages from {pdf_path}")
+    
+    logger.info(f"Total documents loaded: {len(all_documents)}")
     
     # Split into chunks
     text_splitter = RecursiveCharacterTextSplitter(
@@ -48,7 +56,7 @@ def ingest_pdf(
         chunk_overlap=chunk_overlap,
         separators=["\n\n", "\n", ". ", " ", ""],
     )
-    chunks = text_splitter.split_documents(documents)
+    chunks = text_splitter.split_documents(all_documents)
     logger.info(f"Split into {len(chunks)} chunks")
     
     # Initialize embeddings (free HuggingFace model)
@@ -71,7 +79,10 @@ def ingest_pdf(
 
 
 if __name__ == "__main__":
-    # Path to the antibiotic policy PDF
-    pdf_file = "data/antibiotic_policy_2024.pdf"
+    # Paths to PDF files to ingest
+    pdf_files = [
+        "data/antibiotic_policy_2024.pdf",
+        "data/WHO_antibiotic_policy.pdf",
+    ]
     
-    ingest_pdf(pdf_file)
+    ingest_pdfs(pdf_files)
