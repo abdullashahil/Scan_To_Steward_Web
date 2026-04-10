@@ -96,13 +96,19 @@ export default function Home() {
           </div>
 
           {/* Attribution - positioned under image on desktop, right-aligned on mobile */}
-          <div className="mt-8 lg:mt-6 text-right">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="mt-8 lg:mt-6 text-right"
+          >
             <p className="text-sm text-white/60">
-              <span className="block lg:inline font-bold">Designed by</span>{" "}
-              <span className="block lg:inline">Department of Pharmacy Practice,</span>{" "}
-              <span className="block lg:inline">Al Shifa College of Pharmacy</span>
+              <span className="block lg:inline font-bold">{t("designedBy", lang)}</span>{" "}
+              <span className="block lg:inline">{t("deptName", lang)}</span>{" "}
+              <span className="block lg:inline">{t("collegeName", lang)}</span>
             </p>
-          </div>
+          </motion.div>
         </div>
       </section>
 

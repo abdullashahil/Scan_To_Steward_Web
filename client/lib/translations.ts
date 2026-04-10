@@ -236,6 +236,11 @@ export const translations = {
     resName7: "Telavancin",
     resRest7: "Complicated MRSA skin infections.",
     resReason7: "Kidney toxicity; reserve for limited options.",
+
+    // Attribution
+    designedBy: "Designed by",
+    deptName: "Department of Pharmacy Practice,",
+    collegeName: "Al Shifa College of Pharmacy",
   },
   hi: {
     // Nav
@@ -472,6 +477,11 @@ export const translations = {
     resName7: "टेलावान्सिन",
     resRest7: "जटिल MRSA त्वचा संक्रमण।",
     resReason7: "गुर्दे विषाक्तता; सीमित विकल्पों के लिए आरक्षित।",
+
+    // Attribution
+    designedBy: "द्वारा डिज़ाइन किया गया",
+    deptName: "फार्मेसी प्रैक्टिस विभाग,",
+    collegeName: "अल शिफा कॉलेज ऑफ फार्मेसी",
   },
   ml: {
     // Nav
@@ -708,6 +718,11 @@ export const translations = {
     resName7: "ടെലാവാൻസിൻ",
     resRest7: "സങ്കീർണ്ണമായ MRSA ത്വക്ക് അണുബാധകൾ.",
     resReason7: "കിഡ്നി വിഷത്വ; പരിമിതമായ ഓപ്ഷനുകൾക്കായി മാറ്റിവെച്ചിരിക്കുന്നു.",
+
+    // Attribution
+    designedBy: "രൂപകൽപ്പന ചെയ്തത്",
+    deptName: "ഫാർമസി പ്രാക്ടീസ് വകുപ്പ്,",
+    collegeName: "അൽ ഷിഫാ കോളേജ് ഓഫ് ഫാർമസി",
   },
 } as const;
 
