@@ -40,11 +40,13 @@ INTELLIGENT EXTRACTION RULES:
 
 ---
 
-ANTIBIOTIC FILTERING (VERY IMPORTANT):
-- Identify ALL medicines in the prescription
-- ONLY include medicines that are ANTIBIOTICS
-- Ignore non-antibiotic drugs (e.g., probiotics like happibiotic, antacids, vitamins, painkillers, antihistamines)
-- Use your medical knowledge to classify medicines correctly
+MEDICINE EXTRACTION (VERY IMPORTANT):
+- Identify ALL medicines in the prescription (both antibiotics AND non-antibiotics)
+- For EACH medicine, classify as antibiotic or non-antibiotic using medical knowledge
+- Include ALL medicines in output with is_antibiotic flag
+- Examples:
+  - Augmentin, Azithromycin, Ciprofloxacin → antibiotics ✅
+  - Paracetamol, Pantocid, Allegra, vitamins → non-antibiotics ❌
 
 ---
 
@@ -63,7 +65,8 @@ OUTPUT FORMAT (STRICT JSON):
       "dose": "",
       "frequency": "",
       "duration": "",
-      "notes": ""
+      "notes": "",
+      "is_antibiotic": true/false
     }
   ],
   "diagnosis": "",
@@ -71,7 +74,8 @@ OUTPUT FORMAT (STRICT JSON):
 }
 
 IMPORTANT:
-- Include ANTIBIOTIC MEDICINES ONLY
+- Include ALL medicines (antibiotics + non-antibiotics)
+- Set is_antibiotic flag correctly for each medicine
 - Correct obvious spelling mistakes in medicine names (e.g., "Pantuid" → "Pantocid")
 - If unclear, keep best guess
 """
@@ -282,6 +286,13 @@ OUTPUT RULES:
 
 ---
 
+PRESCRIPTION DATA FORMAT:
+The prescription data is provided in JSON format.
+You MUST parse the JSON and extract medicines from the "medicines" array.
+Do NOT ignore JSON structure.
+
+---
+
 FORMAT:
 
 ## Patient Details (Include ONLY if at least one field exists)
@@ -296,7 +307,7 @@ FORMAT:
 
 CRITICAL FILTERING STEP (MANDATORY):
 
-Step 1: From the prescription, extract ALL medicines mentioned.
+Step 1: From the prescription, extract ALL medicines mentioned (both antibiotics AND non-antibiotics).
 
 Step 2: For EACH medicine:
 - Classify it STRICTLY as:
@@ -308,20 +319,18 @@ Use strong medical knowledge:
 - Examples of NON-antibiotics:
   - Paracetamol → painkiller ❌
   - Allegra → antihistamine ❌
-  - Pantocid → antacid ❌
+  - Pantocid/Pantoprazole → antacid ❌
   - Probiotics → Happibiotic ❌
   - Vitamins → ❌
 
-Step 3:
-- DISCARD all NON-antibiotics completely
-- DO NOT mention them anywhere in output
-- DO NOT explain them
-- DO NOT include them in any section
+Step 3 - OUTPUT RULE:
+- Main sections (Antibiotics Prescribed, Mechanism, etc.) → Show ONLY antibiotics
+- BUT internally keep ALL medicines for interaction analysis
+- DO NOT discard non-antibiotics completely
 
 ⚠️ FINAL RULE:
-If a medicine is NOT 100% confidently an antibiotic → EXCLUDE IT
-
-Only proceed with confirmed antibiotics.
+For display sections → Only confirmed antibiotics
+For interaction analysis → ALL medicines must be considered
 
 ## Antibiotics Prescribed
 (STRICT: This section must contain ONLY confirmed antibiotics after classification step)
@@ -370,14 +379,22 @@ For each antibiotic:
 ---
 
 ## Drug Interactions ⚠️
-- Check interactions BETWEEN prescribed antibiotics
-- Mention:
-  - Interaction type (if any)
+
+CRITICAL: You MUST consider ALL medicines from prescription (including non-antibiotics) for interaction analysis, even though non-antibiotics are NOT shown in main sections.
+
+Check interactions between:
+1. Antibiotic ↔ Antibiotic
+2. Antibiotic ↔ Non-antibiotic
+
+If interaction exists:
+- Clearly mention:
+  - Drug pair (e.g., "Augmentin + Pantocid")
+  - Interaction type
   - Severity (Mild/Moderate/Severe)
   - Clinical advice
 
 If none:
-- "No significant antibiotic interactions found"
+- "No significant drug interactions found"
 
 ---
 
@@ -493,11 +510,22 @@ FREQUENCY STANDARD (STRICT):
 ALWAYS use EXACT wording above.
 
 CONFIDENCE RULE:
-If a medicine cannot be confidently identified as an antibiotic:
-→ EXCLUDE it
+If a medicine is likely an antibiotic based on medical knowledge:
+→ INCLUDE it
 
-DO NOT guess.
-DO NOT assume.
+Use your best medical interpretation. Only exclude if absolutely certain it is NOT an antibiotic.
+
+---
+
+PRESCRIPTION DATA FORMAT:
+The prescription data is provided in JSON format.
+You MUST parse the JSON and extract medicines from the "medicines" array.
+Do NOT ignore JSON structure.
+
+Each medicine includes a field "is_antibiotic".
+You MUST:
+- Treat medicines with is_antibiotic = true as antibiotics
+- Do NOT re-classify unless clearly wrong
 
 ---
 
@@ -515,7 +543,7 @@ FORMAT:
 
 CRITICAL FILTERING STEP (MANDATORY):
 
-Step 1: From the prescription, extract ALL medicines mentioned.
+Step 1: From the prescription, extract ALL medicines mentioned (both antibiotics AND non-antibiotics).
 
 Step 2: For EACH medicine:
 - Classify it STRICTLY as:
@@ -527,20 +555,18 @@ Use strong medical knowledge:
 - Examples of NON-antibiotics:
   - Paracetamol → painkiller ❌
   - Allegra → antihistamine ❌
-  - Pantocid → antacid ❌
+  - Pantocid/Pantoprazole → antacid ❌
   - Probiotics → Happibiotic ❌
   - Vitamins → ❌
 
-Step 3:
-- DISCARD all NON-antibiotics completely
-- DO NOT mention them anywhere in output
-- DO NOT explain them
-- DO NOT include them in any section
+Step 3 - OUTPUT RULE:
+- Main sections (Antibiotics Prescribed, etc.) → Show ONLY antibiotics
+- BUT internally keep ALL medicines for interaction analysis
+- DO NOT discard non-antibiotics completely
 
 ⚠️ FINAL RULE:
-If a medicine is NOT 100% confidently an antibiotic → EXCLUDE IT
-
-Only proceed with confirmed antibiotics.
+For display sections → Only confirmed antibiotics
+For interaction analysis → ALL medicines must be considered
 
 CRITICAL MEDICINE NAMING RULE (VERY IMPORTANT):
 
@@ -575,30 +601,22 @@ This rule is STRICT and must be followed for EVERY antibiotic.
 
 ⚠️ VALIDATION RULE:
 Before adding any medicine:
-- Ask internally: "Is this an antibiotic?"
-- If NO → SKIP
-- If UNSURE → SKIP
+- Check the is_antibiotic flag in the JSON data
+- If is_antibiotic = true → INCLUDE as antibiotic
+- If is_antibiotic = false → Keep for interaction analysis but do NOT show in main sections
+- Use medical knowledge to verify, but trust the flag unless clearly wrong
 
 FINAL VALIDATION STEP (MANDATORY):
 
 Before generating output:
-1. Create a hidden list of all medicines
-2. Filter only antibiotics
-3. COUNT them
-
-If count = 0:
-→ Output ONLY:
-"No antibiotics identified in this prescription"
-
-If count > 0:
-→ Ensure ALL antibiotics are included
-→ Ensure NO non-antibiotics are included
+1. Parse the JSON and extract medicines from the "medicines" array
+2. Use medicines where is_antibiotic = true for main sections
+3. Keep ALL medicines for interaction analysis
+4. If no antibiotics found:
+   → Try best medical interpretation before concluding
+   → Only say "No antibiotics identified" if absolutely certain
 
 DO NOT skip this step.
-
-If no antibiotics found:
-Write:
-"No antibiotics identified in this prescription"
 
 For each antibiotic, include ALL of the following in ONE block:
 
@@ -616,6 +634,25 @@ If missing → FIX before continuing
 - Frequency: (in simple words)
 - Duration:
 - How to take:
+
+---
+
+## Drug Interactions ⚠️
+
+CRITICAL: You MUST consider ALL medicines from prescription (including non-antibiotics) for interaction analysis.
+
+Check interactions between:
+1. Antibiotic ↔ Antibiotic
+2. Antibiotic ↔ Non-antibiotic
+
+If interaction exists:
+- Clearly mention in simple language:
+  - Drug pair (e.g., "Augmentin + Pantocid")
+  - What the interaction means
+  - Simple advice for the patient
+
+If none:
+- "No significant drug interactions found"
 
 ---
 
@@ -652,7 +689,7 @@ If the language is "ml" or "malayalam", respond in Malayalam.
     user_prompt = f"""
 Analyze this prescription and generate a complete response.
 
-Prescription:
+Prescription JSON:
 {extracted_text}
 
 LANGUAGE:
