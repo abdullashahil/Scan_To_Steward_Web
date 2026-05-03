@@ -21,6 +21,16 @@ class VectorStore:
             cls._instance = super().__new__(cls)
         return cls._instance
     
+    def _get_embeddings(self) -> HuggingFaceEmbeddings:
+        """Lazy load embeddings model only when needed."""
+        if self._embeddings is None:
+            self._embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs={"device": "cpu"},
+                encode_kwargs={"normalize_embeddings": True},
+            )
+        return self._embeddings
+
     def initialize(self, index_path: str = "faiss_index") -> None:
         """
         Load FAISS index from disk.
@@ -32,17 +42,10 @@ class VectorStore:
         if self._vectorstore is not None:
             return  # Already initialized
         
-        # Initialize same embeddings model used during ingestion
-        self._embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            model_kwargs={"device": "cpu"},
-            encode_kwargs={"normalize_embeddings": True},
-        )
-        
-        # Load FAISS index from disk
+        # Load FAISS index from disk (embeddings loaded lazily on first search)
         self._vectorstore = FAISS.load_local(
             index_path,
-            self._embeddings,
+            self._get_embeddings(),
             allow_dangerous_deserialization=True,
         )
     

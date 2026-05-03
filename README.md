@@ -5,14 +5,14 @@ AI-powered antibiotic stewardship assistant that analyzes prescriptions and prov
 ## Setup
 
 ### Server (FastAPI)
-```bash
+```powershell
 cd server
-source venv/bin/activate
+python -m venv venv
+.\venv\Scripts\Activate.ps1 or source venv/bin/activate
 pip install -r requirements.txt
 python ingest.py  # Build FAISS index
-python migrations/run_migrations.py
-
-python3 -m uvicorn main:app --reload    # Runs on http://localhost:8000
+python migrations\run_migrations.py
+python -m uvicorn main:app --reload    # Runs on http://localhost:8000
 ```
 
 ### Client (Next.js)

@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { t } from "@/lib/translations"
 import type { TranslationsKey } from "@/lib/translations"
 
-type RepeatOption = "once" | "daily" | "3times"
+type RepeatOption = "once" | "daily" | "2times" | "3times"
 
 interface Reminder {
   id: string
@@ -31,6 +31,7 @@ interface UserInfo {
 const REPEAT_LABELS: Record<RepeatOption, string> = {
   once: "oneTime",
   daily: "daily",
+  "2times": "twoTimesDay",
   "3times": "threeTimesDay",
 }
 
@@ -161,7 +162,7 @@ export default function RemindersPage() {
 
       setReminders((prev) => {
         const filtered = prev.filter((reminder) => {
-          // Daily and 3times reminders never expire
+          // Daily, 2times and 3times reminders never expire
           if (reminder.repeat !== "once") return true
 
           // For one-time reminders, check if time has passed
@@ -367,6 +368,7 @@ export default function RemindersPage() {
                   <SelectContent>
                     <SelectItem value="once">{t("oneTime", lang)}</SelectItem>
                     <SelectItem value="daily">{t("daily", lang)}</SelectItem>
+                    <SelectItem value="2times">{t("twoTimesDay", lang)}</SelectItem>
                     <SelectItem value="3times">{t("threeTimesDay", lang)}</SelectItem>
                   </SelectContent>
                 </Select>

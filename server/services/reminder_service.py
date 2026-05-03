@@ -86,6 +86,36 @@ def mark_as_sent(reminder_id: str):
         )
         logger.info(f"Marked reminder as sent: {reminder_id}")
 
+def get_next_reminder_time(current_time: datetime, repeat_type: str, now: datetime = None) -> datetime | None:
+    """
+    Calculate the next reminder time that is strictly in the future.
+    This handles catch-up after downtime - keeps adding intervals until we pass 'now'.
+    """
+    if now is None:
+        now = datetime.now(timezone.utc)
+    
+    # Ensure current_time is timezone-aware
+    if current_time.tzinfo is None:
+        current_time = current_time.replace(tzinfo=timezone.utc)
+    
+    if repeat_type == 'daily':
+        delta = timedelta(days=1)
+    elif repeat_type == '2times':
+        delta = timedelta(hours=12)
+    elif repeat_type == '3times':
+        delta = timedelta(hours=8)
+    else:
+        logger.warning(f"Unknown repeat type: {repeat_type}")
+        return None
+    
+    # Keep advancing until we reach a future time
+    next_time = current_time
+    while next_time <= now:
+        next_time += delta
+    
+    return next_time
+
+
 def reschedule_reminder(reminder):
     """Handle repeat logic for a reminder."""
     if not is_db_connected():
@@ -100,12 +130,10 @@ def reschedule_reminder(reminder):
         logger.info(f"Deleted one-time reminder: {reminder['id']}")
         return None
     
-    elif repeat_type == 'daily':
-        new_time = current_time + timedelta(days=1)
-    elif repeat_type == '3times':
-        new_time = current_time + timedelta(hours=8)
-    else:
-        logger.warning(f"Unknown repeat type: {repeat_type}")
+    # Calculate next time that is strictly in the future
+    new_time = get_next_reminder_time(current_time, repeat_type)
+    if new_time is None:
+        logger.warning(f"Failed to reschedule reminder {reminder['id']}: invalid repeat_type '{repeat_type}'")
         return None
     
     with get_db() as cursor:
@@ -129,7 +157,11 @@ def generate_email_body(user_name: str, medicine: str) -> dict:
     subject = f"💊 Medicine Reminder: Time to take {medicine}"
     
     # Convert to IST (Indian Standard Time, UTC+5:30)
-    ist_time = datetime.now(ZoneInfo("Asia/Kolkata"))
+    try:
+        ist_time = datetime.now(ZoneInfo("Asia/Kolkata"))
+    except:
+        # Fallback: Calculate IST manually (UTC+5:30 = 330 minutes)
+        ist_time = datetime.now(timezone.utc) + timedelta(minutes=330)
     
     body = f"""Hi {user_name},
 
