@@ -42,12 +42,14 @@ async def lifespan(app: FastAPI):
         logger.warning("Database connection failed - continuing without DB")
     
     # Start reminder worker as background task
+    # TEMPORARILY COMMENTED OUT
     worker_task = None
-    if db_initialized and os.getenv("RESEND_API_KEY"):
-        worker_task = asyncio.create_task(reminder_worker())
-        logger.info("Reminder worker started")
-    else:
-        logger.warning("Reminder worker not started - missing DB or RESEND_API_KEY")
+    # if db_initialized and os.getenv("RESEND_API_KEY"):
+    #     worker_task = asyncio.create_task(reminder_worker())
+    #     logger.info("Reminder worker started")
+    # else:
+    #     logger.warning("Reminder worker not started - missing DB or RESEND_API_KEY")
+    logger.info("Reminder worker temporarily disabled")
     
     yield
     # Shutdown: cleanup
